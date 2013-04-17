@@ -15,26 +15,26 @@ Parameters:
 * type - either `document` or `forum`
 
 Returns following JSON:
-		{
-            id        : "SBS internal Id",
-            title     : "Content title",
-            content   : "XHTML Content",
-            tags      : [""],
-            published : timestamp,
-            updated   : timestamp,
-            author    : {
-                email     : "author's e-mail",
-                full_name : "first and last name"
-            },
-            url       : "URL of original content",
-            comments  : {[
-                {
-                    content   : "",
-                    author    : {
-                        email     : "",
-                        full_name : ""
-                    },
-                    published : timestamp
-                }
-            ]}
-		}
+				{
+					id        : "SBS internal Id",
+					title     : "Content title",
+					content   : "XHTML Content",
+					tags      : [""],
+					published : timestamp,
+					updated   : timestamp,
+					author    : {
+						email     : "author's e-mail",
+						full_name : "first and last name"
+					},
+					url       : "URL of original content",
+					comments  : {[
+						{
+							content   : "",
+							author    : {
+								email     : "",
+								full_name : ""
+							},
+							published : timestamp
+						}
+					]}
+				}
