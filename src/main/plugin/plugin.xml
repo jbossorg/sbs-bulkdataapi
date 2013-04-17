@@ -1,0 +1,9 @@
+<plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://www.jivesoftware.com/schemas/clearspace/1_1/plugin.xsd">
+	<name>bulkdataapi</name>
+	<description>Bulk data API</description>
+	<author>JBoss Community</author>
+	<version>1.0.0</version>
+	<minServerVersion>4.5.0</minServerVersion>
+
+</plugin>

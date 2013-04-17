@@ -1,0 +1,19 @@
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+		"http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<package name="data-api" namespace="/data-api" extends="community-actions">
+		<action name="content" class="org.jboss.sbs.data.action.ContentAction" method="execute">
+			<interceptor-ref name="defaultStack"/>
+			<result name="success" type="stream">
+				<param name="parse">false</param>
+				<param name="contentType">application/json;charset=utf-8</param>
+				<param name="inputName">dataInputStream</param>
+				<param name="bufferSize">1024</param>
+				<param name="allowCaching">false</param>
+			</result>
+			<result name="badrequest" type="httpheader">
+				<param name="status">400</param>
+			</result>
+		</action>
+	</package>
+</struts>
