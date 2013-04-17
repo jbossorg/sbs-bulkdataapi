@@ -15,6 +15,8 @@ import com.jivesoftware.community.action.util.Decorate;
 import com.jivesoftware.util.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.sbs.data.model.Document2JSONConverter;
+import org.jboss.sbs.data.model.ForumThread2JSONConverter;
 
 /**
  * Action for bulk data content
@@ -103,27 +105,39 @@ public class ContentAction extends JiveActionSupport {
 		}
 
 		StringBuffer sb = new StringBuffer();
-		sb.append("{");
+		sb.append("[");
 
 		if (ContentType.DOCUMENT.equalsIgnoreCase(type)) {
 			JiveIterator<Document> iterator = getDocuments(space);
+			Document2JSONConverter converter = new Document2JSONConverter();
 			for (Document d : iterator) {
-				appendData(sb, d.getID());
-				if (iterator.hasNext()) {
-					sb.append(",");
+				try {
+					sb.append(converter.convert(d));
+					if (iterator.hasNext()) {
+						sb.append(",");
+					}
+				} catch (Exception e) {
+					throw new RuntimeException("Cannot parse document, id: " + d.getID(), e);
 				}
 			}
 		} else if (ContentType.FORUM.equalsIgnoreCase(type)) {
 			JiveIterator<ForumThread> iterator = getThreads(space);
-			for (ForumThread t : iterator) {
-				appendData(sb, t.getID());
-				if (iterator.hasNext()) {
-					sb.append(",");
+			ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
+			for (ForumThread thread : iterator) {
+				try {
+
+					sb.append(converter.convert(thread));
+					if (iterator.hasNext()) {
+						sb.append(",");
+					}
+				} catch (Exception e) {
+					throw new RuntimeException("Cannot parse forum thread, id: " + thread.getID(), e);
 				}
+
 			}
 		}
 
-		sb.append("}");
+		sb.append("]");
 
 		try {
 			dataInputStream = new ByteArrayInputStream(sb.toString().getBytes("utf-8"));
@@ -132,12 +146,6 @@ public class ContentAction extends JiveActionSupport {
 		}
 
 		return SUCCESS;
-	}
-
-	protected void appendData(StringBuffer sb, Long id) {
-		sb.append("{");
-		sb.append("id:" + id);
-		sb.append("}");
 	}
 
 	protected JiveIterator<Document> getDocuments(Community space) {
