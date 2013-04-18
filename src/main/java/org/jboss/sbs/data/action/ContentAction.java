@@ -9,14 +9,22 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
-import com.jivesoftware.community.*;
-import com.jivesoftware.community.action.JiveActionSupport;
-import com.jivesoftware.community.action.util.Decorate;
-import com.jivesoftware.util.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.sbs.data.model.Document2JSONConverter;
 import org.jboss.sbs.data.model.ForumThread2JSONConverter;
+
+import com.jivesoftware.community.Community;
+import com.jivesoftware.community.CommunityManager;
+import com.jivesoftware.community.CommunityNotFoundException;
+import com.jivesoftware.community.Document;
+import com.jivesoftware.community.DocumentManager;
+import com.jivesoftware.community.ForumManager;
+import com.jivesoftware.community.ForumThread;
+import com.jivesoftware.community.JiveIterator;
+import com.jivesoftware.community.action.JiveActionSupport;
+import com.jivesoftware.community.action.util.Decorate;
+import com.jivesoftware.util.StringUtils;
 
 /**
  * Action for bulk data content
@@ -27,8 +35,7 @@ public class ContentAction extends JiveActionSupport {
 	protected static final Logger log = LogManager.getLogger(ContentAction.class);
 
 	public enum ContentType {
-		DOCUMENT("document"),
-		FORUM("forum");
+		DOCUMENT("document"), FORUM("forum");
 
 		private String value;
 
@@ -45,7 +52,6 @@ public class ContentAction extends JiveActionSupport {
 			return value;
 		}
 	}
-
 
 	private InputStream dataInputStream;
 
@@ -76,16 +82,18 @@ public class ContentAction extends JiveActionSupport {
 		if (spaceId == null) {
 			errorMessage += "\nparameter 'spaceId' is required";
 		}
-		if (updatedAfter == null) {
-			errorMessage += "\nparameter 'updatedAfter' is required";
-		}
+
+		if (maxSize == null || maxSize <= 0)
+			maxSize = 20;
+		if (maxSize > 100)
+			maxSize = 100;
 	}
 
 	@Override
 	public String execute() {
 		if (log.isDebugEnabled()) {
-			log.debug("Get content, parameters: {type: " + type + ", spaceId: " + spaceId + ", updatedAfter: "
-					+ updatedAfter + ", maxSize: " + maxSize + "}");
+			log.debug("Get content, parameters: {type: " + type + ", spaceId: " + spaceId + ", updatedAfter: " + updatedAfter
+					+ ", maxSize: " + maxSize + "}");
 		}
 
 		validateFields();
@@ -105,7 +113,7 @@ public class ContentAction extends JiveActionSupport {
 		}
 
 		StringBuffer sb = new StringBuffer();
-		sb.append("[");
+		sb.append("{ \"items\": [");
 
 		if (ContentType.DOCUMENT.equalsIgnoreCase(type)) {
 			JiveIterator<Document> iterator = getDocuments(space);
@@ -137,7 +145,7 @@ public class ContentAction extends JiveActionSupport {
 			}
 		}
 
-		sb.append("]");
+		sb.append("]}");
 
 		try {
 			dataInputStream = new ByteArrayInputStream(sb.toString().getBytes("utf-8"));
