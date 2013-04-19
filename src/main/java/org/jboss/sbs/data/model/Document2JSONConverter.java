@@ -9,18 +9,16 @@ import com.jivesoftware.community.Document;
 
 /**
  * Converter for Document object
- *
+ * 
  * @author Libor Krzyzanek
  */
 public class Document2JSONConverter implements Content2JSONConverter<Document> {
 
 	@Override
-	public String convert(Document document) throws Exception {
-		StringBuffer sb = new StringBuffer();
+	public void convert(StringBuilder sb, Document document) throws Exception {
 		sb.append("{");
-		JiveContentObject2JSONConverterHelper.addCommonFields(sb, document);
+		JSONConverterHelper.addCommonJiveContentObjecFields(sb, document);
 		sb.append("}");
-		return sb.toString();
 	}
 
 }

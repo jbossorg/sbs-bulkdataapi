@@ -27,7 +27,7 @@ import com.jivesoftware.community.action.util.Decorate;
 import com.jivesoftware.util.StringUtils;
 
 /**
- * Action for bulk data content
+ * Struts Action with bulk data content access handler implementation.
  */
 @Decorate(false)
 public class ContentAction extends JiveActionSupport {
@@ -112,7 +112,7 @@ public class ContentAction extends JiveActionSupport {
 			return "badrequest";
 		}
 
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("{ \"items\": [");
 
 		if (ContentType.DOCUMENT.equalsIgnoreCase(type)) {
@@ -120,7 +120,7 @@ public class ContentAction extends JiveActionSupport {
 			Document2JSONConverter converter = new Document2JSONConverter();
 			for (Document d : iterator) {
 				try {
-					sb.append(converter.convert(d));
+					converter.convert(sb, d);
 					if (iterator.hasNext()) {
 						sb.append(",");
 					}
@@ -133,8 +133,7 @@ public class ContentAction extends JiveActionSupport {
 			ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
 			for (ForumThread thread : iterator) {
 				try {
-
-					sb.append(converter.convert(thread));
+					converter.convert(sb, thread);
 					if (iterator.hasNext()) {
 						sb.append(",");
 					}

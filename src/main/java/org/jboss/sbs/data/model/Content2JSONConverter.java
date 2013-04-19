@@ -7,18 +7,18 @@ package org.jboss.sbs.data.model;
 
 /**
  * Interface to convert content to JSON
- *
+ * 
  * @author Libor Krzyzanek
  */
 public interface Content2JSONConverter<T> {
 
 	/**
-	 * Converts content to string
-	 *
-	 * @param t
-	 * @return
+	 * Converts content object into JSOW and write it to the output string builder
+	 * 
+	 * @param sb builder to write object to
+	 * @param t object to write into JSON
 	 * @throws
 	 */
-	public String convert(T t) throws Exception;
+	public void convert(StringBuilder sb, T t) throws Exception;
 
 }

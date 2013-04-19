@@ -9,18 +9,15 @@ import com.jivesoftware.community.ForumThread;
 
 /**
  * ForumThread converter
- *
+ * 
  * @author Libor Krzyzanek
  */
 public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThread> {
 
 	@Override
-	public String convert(ForumThread thread) throws Exception {
-		StringBuffer sb = new StringBuffer();
+	public void convert(StringBuilder sb, ForumThread thread) throws Exception {
 		sb.append("{");
-		JiveContentObject2JSONConverterHelper.addCommonFields(sb, thread);
+		JSONConverterHelper.addCommonJiveContentObjecFields(sb, thread);
 		sb.append("}");
-		return sb.toString();
-
 	}
 }
