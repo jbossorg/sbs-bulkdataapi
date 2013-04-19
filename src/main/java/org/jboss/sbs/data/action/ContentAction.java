@@ -8,12 +8,16 @@ package org.jboss.sbs.data.action;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.concurrent.Callable;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jboss.sbs.data.model.Document2JSONConverter;
 import org.jboss.sbs.data.model.ForumThread2JSONConverter;
 
+import com.jivesoftware.base.User;
+import com.jivesoftware.base.UserNotFoundException;
 import com.jivesoftware.community.Community;
 import com.jivesoftware.community.CommunityManager;
 import com.jivesoftware.community.CommunityNotFoundException;
@@ -21,7 +25,11 @@ import com.jivesoftware.community.Document;
 import com.jivesoftware.community.DocumentManager;
 import com.jivesoftware.community.ForumManager;
 import com.jivesoftware.community.ForumThread;
+import com.jivesoftware.community.JiveConstants;
 import com.jivesoftware.community.JiveIterator;
+import com.jivesoftware.community.ResultFilter;
+import com.jivesoftware.community.ThreadResultFilter;
+import com.jivesoftware.community.aaa.authz.SystemExecutor;
 import com.jivesoftware.community.action.JiveActionSupport;
 import com.jivesoftware.community.action.util.Decorate;
 import com.jivesoftware.util.StringUtils;
@@ -30,7 +38,7 @@ import com.jivesoftware.util.StringUtils;
  * Struts Action with bulk data content access handler implementation.
  */
 @Decorate(false)
-public class ContentAction extends JiveActionSupport {
+public class ContentAction extends JiveActionSupport implements IUserAccessor {
 
 	protected static final Logger log = LogManager.getLogger(ContentAction.class);
 
@@ -120,7 +128,7 @@ public class ContentAction extends JiveActionSupport {
 			Document2JSONConverter converter = new Document2JSONConverter();
 			for (Document d : iterator) {
 				try {
-					converter.convert(sb, d);
+					converter.convert(sb, d, this);
 					if (iterator.hasNext()) {
 						sb.append(",");
 					}
@@ -133,7 +141,7 @@ public class ContentAction extends JiveActionSupport {
 			ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
 			for (ForumThread thread : iterator) {
 				try {
-					converter.convert(sb, thread);
+					converter.convert(sb, thread, this);
 					if (iterator.hasNext()) {
 						sb.append(",");
 					}
@@ -156,11 +164,31 @@ public class ContentAction extends JiveActionSupport {
 	}
 
 	protected JiveIterator<Document> getDocuments(Community space) {
+		// TODO filter out documents as necessary
 		return documentManager.getDocuments(space);
 	}
 
 	protected JiveIterator<ForumThread> getThreads(Community space) {
-		return forumManager.getThreads(space);
+		ThreadResultFilter filter = new ThreadResultFilter();
+		if (updatedAfter != null)
+			filter.setModificationDateRangeMin(new Date(updatedAfter));
+		filter.setNumResults(maxSize);
+		filter.setSortField(JiveConstants.MODIFICATION_DATE);
+		filter.setSortOrder(ResultFilter.ASCENDING);
+		return forumManager.getThreads(space, filter);
+	}
+
+	@Override
+	public User getTargetUser(final User origUser) throws Exception {
+		SystemExecutor<User> exec = new SystemExecutor<User>(this.authProvider);
+
+		Callable<User> callable = new Callable<User>() {
+			public User call() throws UserNotFoundException {
+				return userManager.getUser(origUser.getID());
+			}
+		};
+
+		return exec.executeCallable(callable);
 	}
 
 	public InputStream getDataInputStream() {

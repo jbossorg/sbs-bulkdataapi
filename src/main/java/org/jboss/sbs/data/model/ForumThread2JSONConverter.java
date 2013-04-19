@@ -5,6 +5,8 @@
  */
 package org.jboss.sbs.data.model;
 
+import org.jboss.sbs.data.action.IUserAccessor;
+
 import com.jivesoftware.community.ForumThread;
 
 /**
@@ -15,9 +17,13 @@ import com.jivesoftware.community.ForumThread;
 public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThread> {
 
 	@Override
-	public void convert(StringBuilder sb, ForumThread thread) throws Exception {
+	public void convert(StringBuilder sb, ForumThread thread, IUserAccessor userAccessor) throws Exception {
 		sb.append("{");
-		JSONConverterHelper.addCommonJiveContentObjecFields(sb, thread);
+		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread);
+		JSONConverterHelper.appendJSONField(sb, "title", thread.getName(), false);
+		JSONConverterHelper.appendTags(sb, thread.getTagDelegator());
+		JSONConverterHelper.appendAuthors(sb, thread.getAuthors(), userAccessor);
+		// TODO add "comments" field
 		sb.append("}");
 	}
 }

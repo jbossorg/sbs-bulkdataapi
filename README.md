@@ -48,11 +48,13 @@ Returns following JSON:
 				"tags"      : ["tag1","tag2"],
 				"published" : "timestamp",
 				"updated"   : "timestamp",
-				"author"    : {
-					"email"     : "author's e-mail",
-					"full_name" : "first and last name"
-				},
 				"url"       : "URL of original content",
+				"authors"   : [ 
+					{
+						"email"     : "author's e-mail",
+						"full_name" : "first and last name"
+					}
+				],
 				"comments"  : [
 					{
 						"content"   : "XHTML Content",
