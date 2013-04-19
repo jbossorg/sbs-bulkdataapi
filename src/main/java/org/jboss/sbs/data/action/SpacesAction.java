@@ -37,7 +37,7 @@ public class SpacesAction extends JiveActionSupport {
 			log.debug("Get spaces");
 		}
 
-		JiveIterator<Community> spaces = communityManager.getCommunities(null);
+		JiveIterator<Community> spaces = communityManager.getCommunities(communityManager.getRootCommunity());
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ \"spaces\": [");
