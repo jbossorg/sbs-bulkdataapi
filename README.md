@@ -58,10 +58,12 @@ Returns following JSON:
 				"comments"  : [
 					{
 						"content"   : "XHTML Content",
-						"author"    : {
-							"email"     : "",
-							"full_name" : ""
-						},
+						"authors"    : [
+							{
+								"email"     : "",
+								"full_name" : ""
+							}
+						],
 						"published" : "timestamp"
 					}
 				]

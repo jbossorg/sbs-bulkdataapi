@@ -13,6 +13,7 @@ import com.jivesoftware.community.ForumThread;
  * ForumThread converter
  * 
  * @author Libor Krzyzanek
+ * @author Vlastimil Elias (velias at redhat dot com)
  */
 public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThread> {
 
