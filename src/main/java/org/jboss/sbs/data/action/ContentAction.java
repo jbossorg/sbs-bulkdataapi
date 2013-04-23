@@ -104,6 +104,8 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 					+ ", maxSize: " + maxSize + "}");
 		}
 
+		// TODO authentication not to provide this API to whole world
+
 		validateFields();
 		if (errorMessage.length() > 0) {
 			if (log.isDebugEnabled()) {

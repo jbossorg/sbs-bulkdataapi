@@ -6,8 +6,8 @@
 package org.jboss.sbs.data.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.xml.transform.TransformerException;
 
@@ -35,11 +35,11 @@ public class Document2JSONConverter implements Content2JSONConverter<Document> {
 		JSONConverterHelper.appendJSONField(sb, "title", document.getSubject(), false);
 		JSONConverterHelper.appendTags(sb, document.getTagDelegator());
 		if (document.getLatestVersionAuthor() != null || document.getUser() != null) {
-			List<User> al = new ArrayList<User>();
-			if (document.getLatestVersionAuthor() != null)
-				al.add(document.getLatestVersionAuthor());
+			Set<User> al = new LinkedHashSet<User>();
 			if (document.getUser() != null)
 				al.add(document.getUser());
+			if (document.getLatestVersionAuthor() != null)
+				al.add(document.getLatestVersionAuthor());
 			JiveIterator<User> authors = new ListJiveIterator<User>(al);
 			JSONConverterHelper.appendAuthors(sb, authors, userAccessor);
 		}
@@ -48,18 +48,19 @@ public class Document2JSONConverter implements Content2JSONConverter<Document> {
 	}
 
 	/**
-	 * Append comments into JSON content.
+	 * Append document comments into JSON content.
 	 * 
 	 * @param sb to append comments into
 	 * @param commentDelegator to obtain comments from
 	 * @throws TransformerException
 	 * @throws IOException
 	 */
-	public static void appendComments(StringBuilder sb, CommentDelegator commentDelegator, IUserAccessor userAccessor)
+	protected static void appendComments(StringBuilder sb, CommentDelegator commentDelegator, IUserAccessor userAccessor)
 			throws Exception {
 		if (commentDelegator != null) {
 			JiveIterator<Comment> comments = commentDelegator.getComments();
 			if (comments.hasNext()) {
+				sb.append(", ");
 				JSONConverterHelper.appendJsonString(sb, "comments");
 				sb.append(" : [");
 				boolean first = true;
@@ -69,7 +70,7 @@ public class Document2JSONConverter implements Content2JSONConverter<Document> {
 					else
 						sb.append(",");
 					sb.append("{");
-					JSONConverterHelper.appendJSONField(sb, "content", JSONConverterHelper.toXmlString(comment), true);
+					JSONConverterHelper.appendJSONField(sb, "content", JSONConverterHelper.bodyToXmlString(comment), true);
 					JSONConverterHelper.appendAuthors(sb, comment.getAuthors(), userAccessor);
 					JSONConverterHelper.appendJSONField(sb, "published",
 							JSONConverterHelper.convertDateValue(comment.getCreationDate()), false);

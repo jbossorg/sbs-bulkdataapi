@@ -5,24 +5,34 @@
  */
 package org.jboss.sbs.data.model;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.transform.TransformerException;
+
+import org.apache.xerces.dom.DOMImplementationImpl;
 import org.jboss.sbs.data.action.IUserAccessor;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.jivesoftware.base.User;
 import com.jivesoftware.base.UserNotFoundException;
 import com.jivesoftware.community.ContentTag;
+import com.jivesoftware.community.JiveContentObject;
 import com.jivesoftware.community.JiveIterator;
+import com.jivesoftware.community.JiveObject;
+import com.jivesoftware.community.JiveObjectURLFactory;
 import com.jivesoftware.community.TagDelegator;
 import com.jivesoftware.community.impl.EmptyJiveIterator;
 import com.jivesoftware.community.impl.ListJiveIterator;
+import com.jivesoftware.community.web.JiveResourceResolver;
 
 /**
  * Unit test for {@link JSONConverterHelper}
@@ -108,31 +118,78 @@ public class JSONConverterHelperTest {
 
 		{
 			StringBuilder sb = new StringBuilder();
-			List<ContentTag> al = new ArrayList<ContentTag>();
-			al.add(mockTag("tag_1"));
-			JSONConverterHelper.appendTags(sb, mockTagDelegator(new ListJiveIterator<ContentTag>(al)));
-			Assert.assertEquals("\"tags\" : [\"tag_1\"]", sb.toString());
+			List<ContentTag> tagsList = new ArrayList<ContentTag>();
+			tagsList.add(mockTag("tag_1"));
+			JSONConverterHelper.appendTags(sb, mockTagDelegator(new ListJiveIterator<ContentTag>(tagsList)));
+			Assert.assertEquals(", \"tags\" : [\"tag_1\"]", sb.toString());
 		}
 
 		{
 			StringBuilder sb = new StringBuilder();
-			List<ContentTag> al = new ArrayList<ContentTag>();
-			al.add(mockTag("tag_1"));
-			al.add(mockTag("tag_2"));
-			al.add(mockTag("tag_3"));
-			JSONConverterHelper.appendTags(sb, mockTagDelegator(new ListJiveIterator<ContentTag>(al)));
-			Assert.assertEquals("\"tags\" : [\"tag_1\",\"tag_2\",\"tag_3\"]", sb.toString());
+			List<ContentTag> tagsList = new ArrayList<ContentTag>();
+			tagsList.add(mockTag("tag_1"));
+			tagsList.add(mockTag("tag_2"));
+			tagsList.add(mockTag("tag_3"));
+			JSONConverterHelper.appendTags(sb, mockTagDelegator(new ListJiveIterator<ContentTag>(tagsList)));
+			Assert.assertEquals(", \"tags\" : [\"tag_1\",\"tag_2\",\"tag_3\"]", sb.toString());
 		}
 
 	}
 
-	private TagDelegator mockTagDelegator(JiveIterator<ContentTag> tags) {
+	@Test
+	public void bodyToXmlString() throws IOException, TransformerException {
+		JiveContentObject data = mockJiveContentObject();
+		Assert.assertEquals("<root>test &gt; text \" content</root>", JSONConverterHelper.bodyToXmlString(data));
+	}
+
+	@Test
+	public void appendCommonJiveContentObjecFields() throws IOException, TransformerException {
+		JiveContentObject data = mockJiveContentObject();
+		mockJiveUrlFactory(data);
+		StringBuilder sb = new StringBuilder();
+		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, data);
+		Assert
+				.assertEquals(
+						"\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\"",
+						sb.toString());
+	}
+
+	protected static void mockJiveUrlFactory(JiveContentObject data) {
+		JiveObjectURLFactory urlFactoryMock = Mockito.mock(JiveObjectURLFactory.class);
+		Mockito.when(urlFactoryMock.createURL(Mockito.any(JiveObject.class), Mockito.eq(true))).thenReturn(
+				"http://my.test.org/myobject");
+		JiveResourceResolver.addURLFactory(data.getObjectType(), urlFactoryMock);
+	}
+
+	protected static JiveContentObject mockJiveContentObject() {
+		JiveContentObject content = Mockito.mock(JiveContentObject.class);
+		Mockito.when(content.getBody()).thenReturn(getTestDOMDocument());
+		Mockito.when(content.getID()).thenReturn(546586l);
+		Mockito.when(content.getCreationDate()).thenReturn(new Date(12456987));
+		Mockito.when(content.getModificationDate()).thenReturn(new Date(12466987));
+
+		return content;
+	}
+
+	protected static Document getTestDOMDocument() {
+		return getTestDOMDocument("test > text \" content");
+	}
+
+	protected static Document getTestDOMDocument(String text) {
+		Document doc = DOMImplementationImpl.getDOMImplementation().createDocument(null, null, null);
+		Element elRoot = doc.createElement("root");
+		elRoot.setTextContent(text);
+		doc.appendChild(elRoot);
+		return doc;
+	}
+
+	protected static TagDelegator mockTagDelegator(JiveIterator<ContentTag> tags) {
 		TagDelegator ret = Mockito.mock(TagDelegator.class);
 		Mockito.when(ret.getTags()).thenReturn(tags);
 		return ret;
 	}
 
-	private ContentTag mockTag(final String name) {
+	protected static ContentTag mockTag(final String name) {
 		ContentTag user = Mockito.mock(ContentTag.class);
 		Mockito.when(user.getName()).thenReturn(name);
 		return user;
@@ -159,40 +216,40 @@ public class JSONConverterHelperTest {
 		{
 			IUserAccessor userAccessor = mockIUserAccessor();
 			StringBuilder sb = new StringBuilder();
-			List<User> al = new ArrayList<User>();
-			al.add(mockUser("John Doe", "john@doe.org"));
-			JiveIterator<User> authors = new ListJiveIterator<User>(al);
+			List<User> authorsList = new ArrayList<User>();
+			authorsList.add(mockUser("John Doe", "john@doe.org"));
+			JiveIterator<User> authors = new ListJiveIterator<User>(authorsList);
 			JSONConverterHelper.appendAuthors(sb, authors, userAccessor);
-			Assert.assertEquals("\"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"}]", sb.toString());
-			Mockito.verify(userAccessor).getTargetUser(al.get(0));
+			Assert.assertEquals(", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"}]", sb.toString());
+			Mockito.verify(userAccessor).getTargetUser(authorsList.get(0));
 		}
 
 		{
 			IUserAccessor userAccessor = mockIUserAccessor();
 			StringBuilder sb = new StringBuilder();
-			List<User> al = new ArrayList<User>();
-			al.add(mockUser("John Doe", "john@doe.org"));
-			al.add(mockUser("Jack Doe", "jack@doe.org"));
-			JiveIterator<User> authors = new ListJiveIterator<User>(al);
+			List<User> authorsList = new ArrayList<User>();
+			authorsList.add(mockUser("John Doe", "john@doe.org"));
+			authorsList.add(mockUser("Jack Doe", "jack@doe.org"));
+			JiveIterator<User> authors = new ListJiveIterator<User>(authorsList);
 			JSONConverterHelper.appendAuthors(sb, authors, userAccessor);
 			Assert
 					.assertEquals(
-							"\"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]",
+							", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]",
 							sb.toString());
-			Mockito.verify(userAccessor).getTargetUser(al.get(0));
-			Mockito.verify(userAccessor).getTargetUser(al.get(1));
+			Mockito.verify(userAccessor).getTargetUser(authorsList.get(0));
+			Mockito.verify(userAccessor).getTargetUser(authorsList.get(1));
 		}
 
 	}
 
-	private User mockUser(final String name, final String email) {
+	protected static User mockUser(final String name, final String email) {
 		User user = Mockito.mock(User.class);
 		Mockito.when(user.getEmail()).thenReturn(email);
 		Mockito.when(user.getName()).thenReturn(name);
 		return user;
 	}
 
-	private IUserAccessor mockIUserAccessor() throws UserNotFoundException, Exception {
+	protected static IUserAccessor mockIUserAccessor() throws UserNotFoundException, Exception {
 		IUserAccessor userAccessor = Mockito.mock(IUserAccessor.class);
 		Mockito.when(userAccessor.getTargetUser(Mockito.any(User.class))).thenAnswer(new Answer<User>() {
 

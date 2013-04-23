@@ -5,9 +5,15 @@
  */
 package org.jboss.sbs.data.model;
 
+import java.io.IOException;
+
+import javax.xml.transform.TransformerException;
+
 import org.jboss.sbs.data.action.IUserAccessor;
 
+import com.jivesoftware.community.ForumMessage;
 import com.jivesoftware.community.ForumThread;
+import com.jivesoftware.community.JiveIterator;
 
 /**
  * ForumThread converter
@@ -24,7 +30,43 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 		JSONConverterHelper.appendJSONField(sb, "title", thread.getName(), false);
 		JSONConverterHelper.appendTags(sb, thread.getTagDelegator());
 		JSONConverterHelper.appendAuthors(sb, thread.getAuthors(), userAccessor);
-		// TODO add "comments" field
+		appendComments(sb, thread, userAccessor);
 		sb.append("}");
 	}
+
+	/**
+	 * Append 'comments' based on thread replies into JSON content.
+	 * 
+	 * @param sb to append comments into
+	 * @param commentDelegator to obtain comments from
+	 * @throws TransformerException
+	 * @throws IOException
+	 */
+	protected static void appendComments(StringBuilder sb, ForumThread thread, IUserAccessor userAccessor)
+			throws Exception {
+		if (thread.getMessageCount() > 1) {
+			long rootMessageId = thread.getRootMessage().getID();
+			JiveIterator<ForumMessage> messages = thread.getMessages();
+			sb.append(", ");
+			JSONConverterHelper.appendJsonString(sb, "comments");
+			sb.append(" : [");
+			boolean first = true;
+			for (ForumMessage message : messages) {
+				if (message.getID() == rootMessageId)
+					continue;
+				if (first)
+					first = false;
+				else
+					sb.append(",");
+				sb.append("{");
+				JSONConverterHelper.appendJSONField(sb, "content", JSONConverterHelper.bodyToXmlString(message), true);
+				JSONConverterHelper.appendAuthors(sb, message.getAuthors(), userAccessor);
+				JSONConverterHelper.appendJSONField(sb, "published",
+						JSONConverterHelper.convertDateValue(message.getCreationDate()), false);
+				sb.append("}");
+			}
+			sb.append("]");
+		}
+	}
+
 }

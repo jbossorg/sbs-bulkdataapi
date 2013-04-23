@@ -93,16 +93,40 @@ public class JSONConverterHelper {
 				.replace("\t", "\\t").replace("\b", "\\b").replace("\f", "\\f");
 	}
 
+	/**
+	 * Appends these fields into JSON string for passed {@link JiveContentObject}.
+	 * <ul>
+	 * <li><code>id</code>
+	 * <li><code>url</code>
+	 * <li><code>content</code>
+	 * <li><code>published</code>
+	 * <li><code>updated</code>
+	 * </ul>
+	 * 
+	 * @param sb to append content into
+	 * @param data to append values from
+	 * @throws IOException
+	 * @throws TransformerException
+	 */
 	public static void appendCommonJiveContentObjecFields(StringBuilder sb, JiveContentObject data) throws IOException,
 			TransformerException {
 		appendJSONField(sb, "id", data.getID() + "", true);
 		appendJSONField(sb, "url", JiveResourceResolver.getJiveObjectURL(data, true), false);
-		appendJSONField(sb, "content", toXmlString(data), false);
+		appendJSONField(sb, "content", bodyToXmlString(data), false);
 		appendJSONField(sb, "published", convertDateValue(data.getCreationDate()), false);
 		appendJSONField(sb, "updated", convertDateValue(data.getModificationDate()), false);
 	}
 
-	public static String toXmlString(JiveContentObject data) throws IOException, TransformerException {
+	/**
+	 * Get rendered body from JiveContentObject and convert it into String.
+	 * 
+	 * @param data to get body from
+	 * @return body converted to the String with XML
+	 * @throws IOException
+	 * @throws TransformerException
+	 * @see JiveContentObject#getBody()
+	 */
+	public static String bodyToXmlString(JiveContentObject data) throws IOException, TransformerException {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer trans = transformerFactory.newTransformer();
 		trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -127,6 +151,7 @@ public class JSONConverterHelper {
 		if (tagDelegator != null) {
 			JiveIterator<ContentTag> tags = tagDelegator.getTags();
 			if (tags.hasNext()) {
+				sb.append(", ");
 				JSONConverterHelper.appendJsonString(sb, "tags");
 				sb.append(" : [");
 				boolean first = true;
@@ -154,6 +179,7 @@ public class JSONConverterHelper {
 	public static void appendAuthors(StringBuilder sb, JiveIterator<User> authors, IUserAccessor userAccessor)
 			throws Exception {
 		if (authors != null && authors.hasNext()) {
+			sb.append(", ");
 			JSONConverterHelper.appendJsonString(sb, "authors");
 			sb.append(" : [");
 			boolean first = true;
