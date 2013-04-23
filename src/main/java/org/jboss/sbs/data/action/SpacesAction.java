@@ -29,7 +29,7 @@ public class SpacesAction extends JiveActionSupport {
 
 	private InputStream dataInputStream;
 
-	private CommunityManager communityManager;
+	protected CommunityManager communityManager;
 
 	@Override
 	public String execute() {
@@ -42,12 +42,14 @@ public class SpacesAction extends JiveActionSupport {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ \"spaces\": [");
 		boolean first = true;
-		for (Community space : spaces) {
-			if (first)
-				first = false;
-			else
-				sb.append(",");
-			JSONConverterHelper.appendJsonString(sb, space.getID() + "");
+		if (spaces != null) {
+			for (Community space : spaces) {
+				if (first)
+					first = false;
+				else
+					sb.append(",");
+				JSONConverterHelper.appendJsonString(sb, space.getID() + "");
+			}
 		}
 		sb.append("]}");
 
