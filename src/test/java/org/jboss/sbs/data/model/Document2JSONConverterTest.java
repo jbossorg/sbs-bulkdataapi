@@ -50,10 +50,11 @@ public class Document2JSONConverterTest {
 		JSONConverterHelperTest.mockJiveUrlFactory(content);
 
 		StringBuilder sb = new StringBuilder();
-		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor());
+		UpdatedDocumentInfo udi = new UpdatedDocumentInfo(content, 456l);
+		converter.convert(sb, udi, JSONConverterHelperTest.mockIUserAccessor());
 		Assert
 				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"456\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
 						sb.toString());
 
 	}
@@ -90,10 +91,11 @@ public class Document2JSONConverterTest {
 		JSONConverterHelperTest.mockJiveUrlFactory(content);
 
 		StringBuilder sb = new StringBuilder();
-		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor());
+		UpdatedDocumentInfo udi = new UpdatedDocumentInfo(content, 4567l);
+		converter.convert(sb, udi, JSONConverterHelperTest.mockIUserAccessor());
 		Assert
 				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\""
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"4567\",\"title\":\"my document title\""
 								+ ", \"tags\" : [\"tag_1\",\"tag_2\",\"tag_3\"]"
 								+ ", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"}]"
 								+ ", \"comments\" : [{\"content\":\"<root>test comment text</root>\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe comment\"}],\"published\":\"457895462\"},{\"content\":\"<root>test comment text 2 </root>\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"}],\"published\":\"557895462\"}]}",

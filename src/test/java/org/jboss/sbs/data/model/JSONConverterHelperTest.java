@@ -146,12 +146,23 @@ public class JSONConverterHelperTest {
 	public void appendCommonJiveContentObjecFields() throws IOException, TransformerException {
 		JiveContentObject data = mockJiveContentObject();
 		mockJiveUrlFactory(data);
-		StringBuilder sb = new StringBuilder();
-		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, data);
-		Assert
-				.assertEquals(
-						"\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\"",
-						sb.toString());
+		{
+			StringBuilder sb = new StringBuilder();
+			JSONConverterHelper.appendCommonJiveContentObjecFields(sb, data, null);
+			Assert
+					.assertEquals(
+							"\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\"",
+							sb.toString());
+		}
+
+		{
+			StringBuilder sb = new StringBuilder();
+			JSONConverterHelper.appendCommonJiveContentObjecFields(sb, data, 123l);
+			Assert
+					.assertEquals(
+							"\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"123\"",
+							sb.toString());
+		}
 	}
 
 	protected static void mockJiveUrlFactory(JiveContentObject data) {

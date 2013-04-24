@@ -26,12 +26,13 @@ import com.jivesoftware.community.impl.ListJiveIterator;
  * @author Libor Krzyzanek
  * @author Vlastimil Elias (velias at redhat dot com)
  */
-public class Document2JSONConverter implements Content2JSONConverter<Document> {
+public class Document2JSONConverter implements Content2JSONConverter<UpdatedDocumentInfo> {
 
 	@Override
-	public void convert(StringBuilder sb, Document document, IUserAccessor userAccessor) throws Exception {
+	public void convert(StringBuilder sb, UpdatedDocumentInfo documentInfo, IUserAccessor userAccessor) throws Exception {
+		Document document = documentInfo.getDocument();
 		sb.append("{");
-		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, document);
+		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, document, documentInfo.getLastUpdated());
 		JSONConverterHelper.appendJSONField(sb, "title", document.getSubject(), false);
 		JSONConverterHelper.appendTags(sb, document.getTagDelegator());
 		if (document.getLatestVersionAuthor() != null || document.getUser() != null) {

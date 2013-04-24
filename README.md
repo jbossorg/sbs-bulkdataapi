@@ -33,7 +33,7 @@ Parameters:
 Notes:
 
 * Returned `items` are ordered by 'last update timestamp' (value stored in `updated` field) ascending to allow incremental updates.
-* Forum Question is returned as item data, all replies as comments for `forum` type.
+* Forum thread first message is returned as item data, all replies as comments for `forum` type.
 * `updated` field for item contains timestamp of last comment published!
 * all dates in response (`published`,`updated`) are represented as strings containing Java timestamp in millis (millis from 1.1.1970 UTC) 
 

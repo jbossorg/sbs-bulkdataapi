@@ -8,14 +8,19 @@ package org.jboss.sbs.data.action;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.jboss.sbs.data.dao.BulkDataDAO;
 import org.jboss.sbs.data.model.Document2JSONConverter;
 import org.jboss.sbs.data.model.ForumThread2JSONConverter;
+import org.jboss.sbs.data.model.UpdatedDocumentInfo;
 
+import com.jivesoftware.base.UnauthorizedException;
 import com.jivesoftware.base.User;
 import com.jivesoftware.base.UserNotFoundException;
 import com.jivesoftware.community.Community;
@@ -23,9 +28,11 @@ import com.jivesoftware.community.CommunityManager;
 import com.jivesoftware.community.CommunityNotFoundException;
 import com.jivesoftware.community.Document;
 import com.jivesoftware.community.DocumentManager;
+import com.jivesoftware.community.DocumentObjectNotFoundException;
 import com.jivesoftware.community.ForumManager;
 import com.jivesoftware.community.ForumThread;
 import com.jivesoftware.community.JiveConstants;
+import com.jivesoftware.community.JiveContentObject.Status;
 import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.ResultFilter;
 import com.jivesoftware.community.ThreadResultFilter;
@@ -67,7 +74,7 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 
 	private Integer maxSize;
 
-	private Integer spaceId;
+	private Long spaceId;
 
 	private String type;
 
@@ -78,6 +85,8 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 	private DocumentManager documentManager;
 
 	private ForumManager forumManager;
+
+	private BulkDataDAO bulkDataDAO;
 
 	public void validateFields() {
 		if (StringUtils.isBlank(type)) {
@@ -126,16 +135,18 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 		sb.append("{ \"items\": [");
 
 		if (ContentType.DOCUMENT.equalsIgnoreCase(type)) {
-			JiveIterator<Document> iterator = getDocuments(space);
+			List<UpdatedDocumentInfo> list = getDocuments(space);
 			Document2JSONConverter converter = new Document2JSONConverter();
-			for (Document d : iterator) {
+			boolean first = true;
+			for (UpdatedDocumentInfo d : list) {
 				try {
-					converter.convert(sb, d, this);
-					if (iterator.hasNext()) {
+					if (first)
+						first = false;
+					else
 						sb.append(",");
-					}
+					converter.convert(sb, d, this);
 				} catch (Exception e) {
-					throw new RuntimeException("Cannot parse document, id: " + d.getID(), e);
+					throw new RuntimeException("Cannot parse document, id: " + d.getDocumentId() + " due: " + e.getMessage(), e);
 				}
 			}
 		} else if (ContentType.FORUM.equalsIgnoreCase(type)) {
@@ -148,7 +159,7 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 						sb.append(",");
 					}
 				} catch (Exception e) {
-					throw new RuntimeException("Cannot parse forum thread, id: " + thread.getID(), e);
+					throw new RuntimeException("Cannot parse forum thread, id: " + thread.getID() + " due: " + e.getMessage(), e);
 				}
 
 			}
@@ -165,9 +176,26 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 		return SUCCESS;
 	}
 
-	protected JiveIterator<Document> getDocuments(Community space) {
-		// TODO filter out documents as necessary
-		return documentManager.getDocuments(space);
+	protected List<UpdatedDocumentInfo> getDocuments(Community space) {
+		List<UpdatedDocumentInfo> rawDocsInfo = bulkDataDAO.listUpdatedDocuments(spaceId, updatedAfter);
+		List<UpdatedDocumentInfo> ret = new ArrayList<UpdatedDocumentInfo>();
+		for (UpdatedDocumentInfo updateDocInfo : rawDocsInfo) {
+			try {
+				Document doc = documentManager.getDocument(updateDocInfo.getDocumentId());
+				if (Status.PUBLISHED.equals(doc.getStatus())) {
+					updateDocInfo.setDocument(doc);
+					ret.add(updateDocInfo);
+				}
+			} catch (UnauthorizedException e) {
+				// nothing to do, we skip this document
+			} catch (DocumentObjectNotFoundException e) {
+				// nothing to do, ignore it
+			}
+			// check if we have enough documents and break loop if yes
+			if (ret.size() >= maxSize)
+				break;
+		}
+		return ret;
 	}
 
 	protected JiveIterator<ForumThread> getThreads(Community space) {
@@ -213,11 +241,11 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 		this.maxSize = maxSize;
 	}
 
-	public Integer getSpaceId() {
+	public Long getSpaceId() {
 		return spaceId;
 	}
 
-	public void setSpaceId(Integer spaceId) {
+	public void setSpaceId(Long spaceId) {
 		this.spaceId = spaceId;
 	}
 
@@ -244,4 +272,9 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 	public void setCommunityManager(CommunityManager communityManager) {
 		this.communityManager = communityManager;
 	}
+
+	public void setBulkDataDAO(BulkDataDAO bulkDataDAO) {
+		this.bulkDataDAO = bulkDataDAO;
+	}
+
 }

@@ -105,16 +105,19 @@ public class JSONConverterHelper {
 	 * 
 	 * @param sb to append content into
 	 * @param data to append values from
+	 * @param updatedTimespamp timestamp of update to be used. if null then JiveContentObject#getModificationDate() is
+	 *          used
 	 * @throws IOException
 	 * @throws TransformerException
 	 */
-	public static void appendCommonJiveContentObjecFields(StringBuilder sb, JiveContentObject data) throws IOException,
-			TransformerException {
+	public static void appendCommonJiveContentObjecFields(StringBuilder sb, JiveContentObject data, Long updatedTimespamp)
+			throws IOException, TransformerException {
 		appendJSONField(sb, "id", data.getID() + "", true);
 		appendJSONField(sb, "url", JiveResourceResolver.getJiveObjectURL(data, true), false);
 		appendJSONField(sb, "content", bodyToXmlString(data), false);
 		appendJSONField(sb, "published", convertDateValue(data.getCreationDate()), false);
-		appendJSONField(sb, "updated", convertDateValue(data.getModificationDate()), false);
+		appendJSONField(sb, "updated",
+				updatedTimespamp != null ? updatedTimespamp + "" : convertDateValue(data.getModificationDate()), false);
 	}
 
 	/**

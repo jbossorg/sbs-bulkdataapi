@@ -26,7 +26,7 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 	@Override
 	public void convert(StringBuilder sb, ForumThread thread, IUserAccessor userAccessor) throws Exception {
 		sb.append("{");
-		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread);
+		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread, null);
 		JSONConverterHelper.appendJSONField(sb, "title", thread.getName(), false);
 		JSONConverterHelper.appendTags(sb, thread.getTagDelegator());
 		JSONConverterHelper.appendAuthors(sb, thread.getAuthors(), userAccessor);
