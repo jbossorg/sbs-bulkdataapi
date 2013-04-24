@@ -33,10 +33,21 @@ public class ForumThread2JSONConverterTest {
 	public void convert_noRepliesAndTags() throws Exception {
 		ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
 
+		ForumThread content = mockForumThreadSimple(546586l, "my document title");
+
+		StringBuilder sb = new StringBuilder();
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor());
+		Assert
+				.assertEquals(
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
+						sb.toString());
+	}
+
+	public static ForumThread mockForumThreadSimple(long id, String title) {
 		ForumThread content = Mockito.mock(ForumThread.class);
 		Mockito.when(content.getBody()).thenReturn(JSONConverterHelperTest.getTestDOMDocument());
-		Mockito.when(content.getID()).thenReturn(546586l);
-		Mockito.when(content.getName()).thenReturn("my document title");
+		Mockito.when(content.getID()).thenReturn(id);
+		Mockito.when(content.getName()).thenReturn(title);
 		Mockito.when(content.getCreationDate()).thenReturn(new Date(12456987));
 		Mockito.when(content.getModificationDate()).thenReturn(new Date(12466987));
 
@@ -56,13 +67,7 @@ public class ForumThread2JSONConverterTest {
 		Mockito.when(content.getMessages()).thenReturn(messages);
 
 		JSONConverterHelperTest.mockJiveUrlFactory(content);
-
-		StringBuilder sb = new StringBuilder();
-		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor());
-		Assert
-				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
-						sb.toString());
+		return content;
 	}
 
 	@Test
@@ -112,7 +117,7 @@ public class ForumThread2JSONConverterTest {
 						sb.toString());
 	}
 
-	private ForumMessage mockForumMessage(long id, String text, long creationDate, boolean twoAuthors) {
+	public static ForumMessage mockForumMessage(long id, String text, long creationDate, boolean twoAuthors) {
 		ForumMessage ret = Mockito.mock(ForumMessage.class);
 		Mockito.when(ret.getID()).thenReturn(id);
 		Mockito.when(ret.getBody()).thenReturn(JSONConverterHelperTest.getTestDOMDocument(text));

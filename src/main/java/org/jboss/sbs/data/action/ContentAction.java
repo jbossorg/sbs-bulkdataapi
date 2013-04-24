@@ -68,6 +68,8 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 		}
 	}
 
+	protected IUserAccessor userAccessor = this;
+
 	private InputStream dataInputStream;
 
 	private Long updatedAfter;
@@ -90,10 +92,9 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 
 	public void validateFields() {
 		if (StringUtils.isBlank(type)) {
-			errorMessage += "\nparameter 'type' is required";
-		}
-		if (!(ContentType.DOCUMENT.equalsIgnoreCase(type) || ContentType.FORUM.equalsIgnoreCase(type))) {
-			errorMessage = "type must be either '" + ContentType.DOCUMENT.toString() + "' or '"
+			errorMessage += "parameter 'type' is required";
+		} else if (!(ContentType.DOCUMENT.equalsIgnoreCase(type) || ContentType.FORUM.equalsIgnoreCase(type))) {
+			errorMessage = "parameter 'type' must be either '" + ContentType.DOCUMENT.toString() + "' or '"
 					+ ContentType.FORUM.toString() + "'";
 		}
 		if (spaceId == null) {
@@ -116,7 +117,7 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 		// TODO authentication not to provide this API to whole world
 
 		validateFields();
-		if (errorMessage.length() > 0) {
+		if (errorMessage != null && errorMessage.length() > 0) {
 			if (log.isDebugEnabled()) {
 				log.debug("Bad request error message: " + errorMessage);
 			}
@@ -144,7 +145,7 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 						first = false;
 					else
 						sb.append(",");
-					converter.convert(sb, d, this);
+					converter.convert(sb, d, userAccessor);
 				} catch (Exception e) {
 					throw new RuntimeException("Cannot parse document, id: " + d.getDocumentId() + " due: " + e.getMessage(), e);
 				}
@@ -152,12 +153,14 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 		} else if (ContentType.FORUM.equalsIgnoreCase(type)) {
 			JiveIterator<ForumThread> iterator = getThreads(space);
 			ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
+			boolean first = true;
 			for (ForumThread thread : iterator) {
 				try {
-					converter.convert(sb, thread, this);
-					if (iterator.hasNext()) {
+					if (first)
+						first = false;
+					else
 						sb.append(",");
-					}
+					converter.convert(sb, thread, userAccessor);
 				} catch (Exception e) {
 					throw new RuntimeException("Cannot parse forum thread, id: " + thread.getID() + " due: " + e.getMessage(), e);
 				}
@@ -177,12 +180,12 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 	}
 
 	protected List<UpdatedDocumentInfo> getDocuments(Community space) {
-		List<UpdatedDocumentInfo> rawDocsInfo = bulkDataDAO.listUpdatedDocuments(spaceId, updatedAfter);
+		List<UpdatedDocumentInfo> rawDocsInfo = bulkDataDAO.listUpdatedDocuments(space.getID(), updatedAfter);
 		List<UpdatedDocumentInfo> ret = new ArrayList<UpdatedDocumentInfo>();
 		for (UpdatedDocumentInfo updateDocInfo : rawDocsInfo) {
 			try {
 				Document doc = documentManager.getDocument(updateDocInfo.getDocumentId());
-				if (Status.PUBLISHED.equals(doc.getStatus())) {
+				if (doc != null && Status.PUBLISHED.equals(doc.getStatus())) {
 					updateDocInfo.setDocument(doc);
 					ret.add(updateDocInfo);
 				}

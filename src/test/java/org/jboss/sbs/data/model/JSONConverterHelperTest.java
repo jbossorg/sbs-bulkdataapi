@@ -165,7 +165,7 @@ public class JSONConverterHelperTest {
 		}
 	}
 
-	protected static void mockJiveUrlFactory(JiveContentObject data) {
+	public static void mockJiveUrlFactory(JiveContentObject data) {
 		JiveObjectURLFactory urlFactoryMock = Mockito.mock(JiveObjectURLFactory.class);
 		Mockito.when(urlFactoryMock.createURL(Mockito.any(JiveObject.class), Mockito.eq(true))).thenReturn(
 				"http://my.test.org/myobject");
@@ -260,7 +260,7 @@ public class JSONConverterHelperTest {
 		return user;
 	}
 
-	protected static IUserAccessor mockIUserAccessor() throws UserNotFoundException, Exception {
+	public static IUserAccessor mockIUserAccessor() throws UserNotFoundException, Exception {
 		IUserAccessor userAccessor = Mockito.mock(IUserAccessor.class);
 		Mockito.when(userAccessor.getTargetUser(Mockito.any(User.class))).thenAnswer(new Answer<User>() {
 

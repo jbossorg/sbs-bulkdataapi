@@ -25,6 +25,18 @@ public class DbBulkDataDAOImpl extends JiveJdbcDaoSupport implements BulkDataDAO
 	@Override
 	public List<UpdatedDocumentInfo> listUpdatedDocuments(long spaceId, Long updatedAfterTimestamp) {
 
+		String sql = prepareSql(spaceId, updatedAfterTimestamp);
+		logger.debug("SQL called: " + sql);
+		return getSimpleJdbcTemplate().query(sql, new ParameterizedRowMapper<UpdatedDocumentInfo>() {
+
+			@Override
+			public UpdatedDocumentInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+				return new UpdatedDocumentInfo(rs.getLong(1), rs.getLong(2));
+			}
+		});
+	}
+
+	protected static String prepareSql(long spaceId, Long updatedAfterTimestamp) {
 		String sqlDoc = "select jdv.internalDocID as id, jdv.modificationDate as d from jiveDocument as jd, jiveDocVersion as jdv where jd.internalDocID = jdv.internalDocID and jdv.state = 'published' and jd.containerID = "
 				+ spaceId;
 		String sqlComment = "select jd.internalDocID as id, comment.modificationDate as d from jiveDocument as jd, jiveComment as comment where jd.internalDocID = comment.objectID and comment.objectType = "
@@ -37,14 +49,7 @@ public class DbBulkDataDAOImpl extends JiveJdbcDaoSupport implements BulkDataDAO
 
 		String sql = "select a.id, max(a.d) from ( " + sqlDoc + " union  " + sqlComment
 				+ " ) as a group by a.id order by a.d";
-		logger.debug("SQL called: " + sql);
-		return getSimpleJdbcTemplate().query(sql, new ParameterizedRowMapper<UpdatedDocumentInfo>() {
-
-			@Override
-			public UpdatedDocumentInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
-				return new UpdatedDocumentInfo(rs.getLong(1), rs.getLong(2));
-			}
-		});
+		return sql;
 	}
 
 }
