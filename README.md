@@ -27,8 +27,8 @@ Parameters:
 
 * spaceId - mandatory, internal Jive SBS space Id to get content for
 * type - mandatory, either `document` or `forum`
-* updatedAfter - optional, Java timestamp in millis. All content updated after this timestamp is returned.
-* maxSize - optional, how many items to return maximally (defaults to 20, max 100).
+* updatedAfter - optional, Java timestamp in millis. Content updated after this timestamp is returned only so you can use incremental updates.
+* maxSize - optional, how many items is returned maximally (defaults to 20, max 100).
 
 Notes:
 
