@@ -1,4 +1,4 @@
-Jive SBS plugin - bulk data API
+Jive SBS plugin - Bulk data API
 ===============================
 
 Jive SBS plugin providing bulk data access REST API useful for fulltext search
@@ -21,19 +21,19 @@ Returns following JSON:
 
 ####Get data for space
 
-	/data-api/content.jspa?updatedAfter&maxSize&spaceId&type
+	/data-api/content.jspa?spaceId&type&updatedAfter&maxSize
 
 Parameters:
 
-* spaceId - mandatory, internal Jive SBS space Id to get content for
-* type - mandatory, either `document` or `forum`
-* updatedAfter - optional, Java timestamp in millis. Content updated after this timestamp is returned only so you can use incremental updates.
-* maxSize - optional, how many items is returned maximally (defaults to 20, max 100).
+* `spaceId` - mandatory, internal Jive SBS space Id to get content for
+* `type` - mandatory, type of SBS content to return, either `document` or `forum`
+* `updatedAfter` - optional, Java timestamp in millis. Content updated after this timestamp is returned only so you can use incremental updates.
+* `maxSize` - optional, how many items is returned maximally (defaults to 20, max 100).
 
 Notes:
 
 * Returned `items` are ordered by 'last update timestamp' (value stored in `updated` field) ascending to allow incremental updates.
-* Forum thread first message is returned as item data, all replies as comments for `forum` type.
+* for `forum` type - forum thread first message is returned as item data, all replies as comments.
 * `updated` field for item contains timestamp of last comment published!
 * all dates in response (`published`,`updated`) are represented as strings containing Java timestamp in millis (millis from 1.1.1970 UTC) 
 
