@@ -27,8 +27,45 @@ import com.jivesoftware.community.impl.ListJiveIterator;
 public class SpacesActionTest {
 
 	@Test
+	public void execute_authentication() {
+		Community rootCommunityMock = mockCommunity(10l);
+		// case - unauthorized due anonymous
+		{
+			SpacesAction tested = new SpacesAction();
+			ContentActionTest.mockAuthenticationProvider(tested, true, false, false);
+			mockCommunityManager(tested, rootCommunityMock, null);
+			Assert.assertEquals("unauthorized", tested.execute());
+		}
+
+		// case - authorized, not anonymous and not group exists
+		{
+			SpacesAction tested = new SpacesAction();
+			ContentActionTest.mockAuthenticationProvider(tested, false, false, false);
+			mockCommunityManager(tested, rootCommunityMock, null);
+			Assert.assertEquals("success", tested.execute());
+		}
+
+		// case - unauthorized, not anonymous but group exists and not in group
+		{
+			SpacesAction tested = new SpacesAction();
+			ContentActionTest.mockAuthenticationProvider(tested, true, true, false);
+			mockCommunityManager(tested, rootCommunityMock, null);
+			Assert.assertEquals("unauthorized", tested.execute());
+		}
+
+		// case - authorized, not anonymous and is in group
+		{
+			SpacesAction tested = new SpacesAction();
+			ContentActionTest.mockAuthenticationProvider(tested, false, true, true);
+			mockCommunityManager(tested, rootCommunityMock, null);
+			Assert.assertEquals("success", tested.execute());
+		}
+	}
+
+	@Test
 	public void execute() throws IOException {
 		SpacesAction tested = new SpacesAction();
+		ContentActionTest.mockAuthenticationProvider(tested);
 
 		Community rootCommunityMock = mockCommunity(10l);
 

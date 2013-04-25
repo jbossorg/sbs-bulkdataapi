@@ -5,8 +5,8 @@ Jive SBS plugin providing bulk data access REST API useful for fulltext search
 indexing. Is designed to cooperate with 
 [Universal remote system indexing River Plugin for ElasticSearch](https://github.com/jbossorg/elasticsearch-river-remote)
 
-REST API
---------
+REST API operations
+-------------------
 
 ####List identifiers for all spaces
 
@@ -71,3 +71,11 @@ Returns following JSON:
 		]
 	}
 
+REST API authentication
+-----------------------
+
+Client must be authenticated to use REST API of this plugin. You can use 
+HTTP Basic Authentication with standard Jive SBS user credentials.  
+If `Bulk Data API Users` group is defined in SBS, then only users present 
+in this group can use this API. If group doesn't exists, then all authenticated
+users can use it.  

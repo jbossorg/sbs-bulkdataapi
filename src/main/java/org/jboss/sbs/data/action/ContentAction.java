@@ -37,7 +37,6 @@ import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.ResultFilter;
 import com.jivesoftware.community.ThreadResultFilter;
 import com.jivesoftware.community.aaa.authz.SystemExecutor;
-import com.jivesoftware.community.action.JiveActionSupport;
 import com.jivesoftware.community.action.util.Decorate;
 import com.jivesoftware.util.StringUtils;
 
@@ -45,7 +44,13 @@ import com.jivesoftware.util.StringUtils;
  * Struts Action with bulk data content access handler implementation.
  */
 @Decorate(false)
-public class ContentAction extends JiveActionSupport implements IUserAccessor {
+public class ContentAction extends ActionBase {
+
+	/**
+	 * Name of security group used to authorize for this API. If Group doesn't exists then all logged in users are
+	 * authorized.
+	 */
+	public static final String SECURITY_GROUP_NAME = "Bulk Data API Users";
 
 	protected static final Logger log = LogManager.getLogger(ContentAction.class);
 
@@ -67,8 +72,6 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 			return value;
 		}
 	}
-
-	protected IUserAccessor userAccessor = this;
 
 	private InputStream dataInputStream;
 
@@ -114,7 +117,9 @@ public class ContentAction extends JiveActionSupport implements IUserAccessor {
 					+ ", maxSize: " + maxSize + "}");
 		}
 
-		// TODO authentication not to provide this API to whole world
+		String ret = isAuthorizedForBulkDataAPIUse();
+		if (ret != null)
+			return ret;
 
 		validateFields();
 		if (errorMessage != null && errorMessage.length() > 0) {

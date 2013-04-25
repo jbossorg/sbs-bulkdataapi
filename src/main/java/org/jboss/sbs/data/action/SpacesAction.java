@@ -16,14 +16,13 @@ import org.jboss.sbs.data.model.JSONConverterHelper;
 import com.jivesoftware.community.Community;
 import com.jivesoftware.community.CommunityManager;
 import com.jivesoftware.community.JiveIterator;
-import com.jivesoftware.community.action.JiveActionSupport;
 import com.jivesoftware.community.action.util.Decorate;
 
 /**
  * Struts Action with spaces operation handler implementation.
  */
 @Decorate(false)
-public class SpacesAction extends JiveActionSupport {
+public class SpacesAction extends ActionBase {
 
 	protected static final Logger log = LogManager.getLogger(SpacesAction.class);
 
@@ -36,6 +35,10 @@ public class SpacesAction extends JiveActionSupport {
 		if (log.isDebugEnabled()) {
 			log.debug("Get spaces");
 		}
+
+		String ret = isAuthorizedForBulkDataAPIUse();
+		if (ret != null)
+			return ret;
 
 		JiveIterator<Community> spaces = communityManager.getCommunities(communityManager.getRootCommunity());
 

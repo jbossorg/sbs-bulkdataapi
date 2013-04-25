@@ -20,7 +20,13 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.jivesoftware.base.Group;
+import com.jivesoftware.base.GroupManager;
+import com.jivesoftware.base.GroupNotFoundException;
 import com.jivesoftware.base.UnauthorizedException;
+import com.jivesoftware.base.User;
+import com.jivesoftware.base.aaa.AuthenticationProvider;
+import com.jivesoftware.base.aaa.JiveAuthentication;
 import com.jivesoftware.community.Community;
 import com.jivesoftware.community.CommunityManager;
 import com.jivesoftware.community.CommunityNotFoundException;
@@ -93,8 +99,40 @@ public class ContentActionTest {
 	}
 
 	@Test
+	public void execute_authentication() {
+		// case - unauthorized due anonymous
+		{
+			ContentAction tested = new ContentAction();
+			mockAuthenticationProvider(tested, true, false, false);
+			Assert.assertEquals("unauthorized", tested.execute());
+		}
+
+		// case - authorized, not anonymous and not group exists
+		{
+			ContentAction tested = new ContentAction();
+			mockAuthenticationProvider(tested, false, false, false);
+			Assert.assertEquals("badrequest", tested.execute());
+		}
+
+		// case - unauthorized, not anonymous but group exists and not in group
+		{
+			ContentAction tested = new ContentAction();
+			mockAuthenticationProvider(tested, true, true, false);
+			Assert.assertEquals("unauthorized", tested.execute());
+		}
+
+		// case - authorized, not anonymous and is in group
+		{
+			ContentAction tested = new ContentAction();
+			mockAuthenticationProvider(tested, false, true, true);
+			Assert.assertEquals("badrequest", tested.execute());
+		}
+	}
+
+	@Test
 	public void execute_validateError() {
 		ContentAction tested = new ContentAction();
+		mockAuthenticationProvider(tested);
 		Assert.assertEquals("badrequest", tested.execute());
 		Assert.assertEquals("parameter 'type' is required\nparameter 'spaceId' is required", tested.getErrorMessage());
 	}
@@ -102,6 +140,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_unknownCommunity() throws Exception {
 		ContentAction tested = new ContentAction();
+		mockAuthenticationProvider(tested);
 		tested.setType("forum");
 		tested.setSpaceId(123l);
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
@@ -115,6 +154,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_forum_noresult() throws Exception {
 		ContentAction tested = new ContentAction();
+		mockAuthenticationProvider(tested);
 		final List<ForumThread> threadsList = new ArrayList<ForumThread>();
 		performForumTest(tested, threadsList, 100l);
 		assertOutputContent("{ \"items\": []}", tested);
@@ -123,6 +163,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_forum_withresults() throws Exception {
 		ContentAction tested = new ContentAction();
+		mockAuthenticationProvider(tested);
 		tested.userAccessor = JSONConverterHelperTest.mockIUserAccessor();
 		final List<ForumThread> threadsList = new ArrayList<ForumThread>();
 		threadsList.add(ForumThread2JSONConverterTest.mockForumThreadSimple(10, "thread 1"));
@@ -247,6 +288,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_document_noresult() throws Exception {
 		ContentAction tested = new ContentAction();
+		mockAuthenticationProvider(tested);
 		tested.setType("document");
 		tested.setMaxSize(3);
 		tested.setUpdatedAfter(123l);
@@ -271,6 +313,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_document_withresults() throws Exception {
 		ContentAction tested = new ContentAction();
+		mockAuthenticationProvider(tested);
 		tested.setType("document");
 		tested.setMaxSize(3);
 		tested.setSpaceId(1l);
@@ -302,6 +345,40 @@ public class ContentActionTest {
 		assertOutputContent(
 				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\",\"updated\":\"100\"},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\",\"updated\":\"110\"}]}",
 				tested);
+	}
+
+	public static void mockAuthenticationProvider(ActionBase tested) {
+		mockAuthenticationProvider(tested, false, false, false);
+	}
+
+	public static void mockAuthenticationProvider(ActionBase tested, boolean anonymous, boolean groupExists,
+			boolean isUserInGroup) {
+		AuthenticationProvider ap = Mockito.mock(AuthenticationProvider.class);
+		JiveAuthentication ja = Mockito.mock(JiveAuthentication.class);
+		Mockito.when(ja.isAnonymous()).thenReturn(anonymous);
+		Mockito.when(ap.getAuthentication()).thenReturn(ja);
+		User user = Mockito.mock(User.class);
+		Mockito.when(ap.getJiveUser()).thenReturn(user);
+		tested.setAuthenticationProvider(ap);
+
+		GroupManager groupManager = Mockito.mock(GroupManager.class);
+		try {
+			if (groupExists) {
+				Group group = Mockito.mock(Group.class);
+				if (isUserInGroup) {
+					Mockito.when(group.isMember(Mockito.any(User.class))).thenReturn(true);
+				} else {
+					Mockito.when(group.isMember(Mockito.any(User.class))).thenReturn(false);
+				}
+
+				Mockito.when(groupManager.getGroup(ActionBase.SECURITY_GROUP_NAME)).thenReturn(group);
+			} else {
+				Mockito.when(groupManager.getGroup(ActionBase.SECURITY_GROUP_NAME)).thenThrow(new GroupNotFoundException());
+			}
+			tested.setGroupManager(groupManager);
+		} catch (GroupNotFoundException e) {
+
+		}
 	}
 
 }
