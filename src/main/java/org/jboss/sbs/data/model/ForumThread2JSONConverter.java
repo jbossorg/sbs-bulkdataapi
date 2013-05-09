@@ -60,7 +60,7 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 					sb.append(",");
 				sb.append("{");
 				JSONConverterHelper.appendJSONField(sb, "content", JSONConverterHelper.bodyToXmlString(message), true);
-				JSONConverterHelper.appendAuthors(sb, message.getAuthors(), userAccessor);
+				JSONConverterHelper.appendAuthor(sb, message.getUser(), userAccessor);
 				JSONConverterHelper.appendJSONField(sb, "published",
 						JSONConverterHelper.convertDateValue(message.getCreationDate()), false);
 				sb.append("}");

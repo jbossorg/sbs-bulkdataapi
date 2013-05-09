@@ -72,7 +72,7 @@ public class Document2JSONConverter implements Content2JSONConverter<UpdatedDocu
 						sb.append(",");
 					sb.append("{");
 					JSONConverterHelper.appendJSONField(sb, "content", JSONConverterHelper.bodyToXmlString(comment), true);
-					JSONConverterHelper.appendAuthors(sb, comment.getAuthors(), userAccessor);
+					JSONConverterHelper.appendAuthor(sb, comment.getUser(), userAccessor);
 					JSONConverterHelper.appendJSONField(sb, "published",
 							JSONConverterHelper.convertDateValue(comment.getCreationDate()), false);
 					sb.append("}");

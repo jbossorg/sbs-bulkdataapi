@@ -113,7 +113,7 @@ public class ForumThread2JSONConverterTest {
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\""
 								+ ", \"tags\" : [\"tag_1\",\"tag_2\",\"tag_3\"]"
 								+ ", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]"
-								+ ", \"comments\" : [{\"content\":\"<root>text 2</root>\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe comment\"}],\"published\":\"56332132\"},{\"content\":\"<root>text 3</root>\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"}],\"published\":\"63321351\"}]}",
+								+ ", \"comments\" : [{\"content\":\"<root>text 2</root>\", \"author\" : {\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},\"published\":\"56332132\"},{\"content\":\"<root>text 3</root>\", \"author\" : {\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},\"published\":\"63321351\"}]}",
 						sb.toString());
 	}
 
@@ -122,12 +122,8 @@ public class ForumThread2JSONConverterTest {
 		Mockito.when(ret.getID()).thenReturn(id);
 		Mockito.when(ret.getBody()).thenReturn(JSONConverterHelperTest.getTestDOMDocument(text));
 		Mockito.when(ret.getCreationDate()).thenReturn(new Date(creationDate));
-		List<User> authorsList = new ArrayList<User>();
-		authorsList.add(JSONConverterHelperTest.mockUser("John Doe comment", "john@doe.org"));
-		if (twoAuthors)
-			authorsList.add(JSONConverterHelperTest.mockUser("Jack Doe comment", "jack@doe.org"));
-		JiveIterator<User> authors = new ListJiveIterator<User>(authorsList);
-		Mockito.when(ret.getAuthors()).thenReturn(authors);
+		User user = JSONConverterHelperTest.mockUser("John Doe comment", "john@doe.org");
+		Mockito.when(ret.getUser()).thenReturn(user);
 		return ret;
 	}
 

@@ -17,7 +17,6 @@ import org.mockito.Mockito;
 import com.jivesoftware.base.User;
 import com.jivesoftware.community.ContentTag;
 import com.jivesoftware.community.Document;
-import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.TagDelegator;
 import com.jivesoftware.community.comments.Comment;
 import com.jivesoftware.community.comments.CommentDelegator;
@@ -98,7 +97,7 @@ public class Document2JSONConverterTest {
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"4567\",\"title\":\"my document title\""
 								+ ", \"tags\" : [\"tag_1\",\"tag_2\",\"tag_3\"]"
 								+ ", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"}]"
-								+ ", \"comments\" : [{\"content\":\"<root>test comment text</root>\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe comment\"}],\"published\":\"457895462\"},{\"content\":\"<root>test comment text 2 </root>\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"}],\"published\":\"557895462\"}]}",
+								+ ", \"comments\" : [{\"content\":\"<root>test comment text</root>\", \"author\" : {\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},\"published\":\"457895462\"},{\"content\":\"<root>test comment text 2 </root>\", \"author\" : {\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},\"published\":\"557895462\"}]}",
 						sb.toString());
 
 	}
@@ -107,12 +106,8 @@ public class Document2JSONConverterTest {
 		Comment ret = Mockito.mock(Comment.class);
 		Mockito.when(ret.getBody()).thenReturn(JSONConverterHelperTest.getTestDOMDocument(text));
 		Mockito.when(ret.getCreationDate()).thenReturn(new Date(creationDate));
-		List<User> authorsList = new ArrayList<User>();
-		authorsList.add(JSONConverterHelperTest.mockUser("John Doe comment", "john@doe.org"));
-		if (twoAuthors)
-			authorsList.add(JSONConverterHelperTest.mockUser("Jack Doe comment", "jack@doe.org"));
-		JiveIterator<User> authors = new ListJiveIterator<User>(authorsList);
-		Mockito.when(ret.getAuthors()).thenReturn(authors);
+		User user = JSONConverterHelperTest.mockUser("John Doe comment", "john@doe.org");
+		Mockito.when(ret.getUser()).thenReturn(user);
 		return ret;
 	}
 

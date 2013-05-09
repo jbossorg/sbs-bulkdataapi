@@ -34,6 +34,9 @@ import com.jivesoftware.community.web.JiveResourceResolver;
  */
 public class JSONConverterHelper {
 
+	private static final String AUTHOR_FULL_NAME = "full_name";
+	private static final String AUTHOR_EMAIL = "email";
+
 	/**
 	 * Append JSON string into builder. So get value, JSON escape it, and wrap it up in quotation marks.
 	 * 
@@ -193,11 +196,32 @@ public class JSONConverterHelper {
 					sb.append(",");
 				sb.append("{");
 				author = userAccessor.getTargetUser(author);
-				appendJSONField(sb, "email", author.getEmail(), true);
-				appendJSONField(sb, "full_name", author.getName(), false);
+				appendJSONField(sb, AUTHOR_EMAIL, author.getEmail(), true);
+				appendJSONField(sb, AUTHOR_FULL_NAME, author.getName(), false);
 				sb.append("}");
 			}
 			sb.append("]");
+		}
+	}
+
+	/**
+	 * Append author into JSON content.
+	 * 
+	 * @param sb to append into
+	 * @param author to append
+	 * @param userAccessor service to access user data with necessary informations over security boundaries
+	 * @throws Exception
+	 * @throws UserNotFoundException
+	 */
+	public static void appendAuthor(StringBuilder sb, User author, IUserAccessor userAccessor) throws Exception {
+		if (author != null && !author.isAnonymous()) {
+			sb.append(", ");
+			JSONConverterHelper.appendJsonString(sb, "author");
+			sb.append(" : {");
+			author = userAccessor.getTargetUser(author);
+			appendJSONField(sb, AUTHOR_EMAIL, author.getEmail(), true);
+			appendJSONField(sb, AUTHOR_FULL_NAME, author.getName(), false);
+			sb.append("}");
 		}
 	}
 }

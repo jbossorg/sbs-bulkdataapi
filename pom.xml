@@ -8,7 +8,7 @@
 	<artifactId>bulkdataapi</artifactId>
 	<name>Jive SBS plugin: Bulk data API</name>
 	<description>Plugin bulk data API</description>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 
 	<inceptionYear>2013</inceptionYear>
 	<licenses>

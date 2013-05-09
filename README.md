@@ -58,18 +58,18 @@ Returns following JSON:
 				"comments"  : [
 					{
 						"content"   : "XHTML Content",
-						"authors"    : [
-							{
+						"author"    : {
 								"email"     : "",
 								"full_name" : ""
 							}
-						],
+						,
 						"published" : "timestamp"
 					}
 				]
 			}
 		]
 	}
+
 
 REST API authentication
 -----------------------
