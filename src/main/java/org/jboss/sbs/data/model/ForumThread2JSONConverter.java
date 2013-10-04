@@ -13,7 +13,7 @@ import org.jboss.sbs.data.action.IUserAccessor;
 
 import com.jivesoftware.community.ForumMessage;
 import com.jivesoftware.community.ForumThread;
-import com.jivesoftware.community.JiveIterator;
+import com.jivesoftware.community.web.GlobalResourceResolver;
 
 /**
  * ForumThread converter
@@ -24,9 +24,10 @@ import com.jivesoftware.community.JiveIterator;
 public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThread> {
 
 	@Override
-	public void convert(StringBuilder sb, ForumThread thread, IUserAccessor userAccessor) throws Exception {
+	public void convert(StringBuilder sb, ForumThread thread, IUserAccessor userAccessor,
+			GlobalResourceResolver resourceResolver) throws Exception {
 		sb.append("{");
-		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread, null);
+		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread, null, resourceResolver);
 		JSONConverterHelper.appendJSONField(sb, "title", thread.getName(), false);
 		JSONConverterHelper.appendTags(sb, thread.getTagDelegator());
 		JSONConverterHelper.appendAuthors(sb, thread.getAuthors(), userAccessor);
@@ -46,7 +47,7 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 			throws Exception {
 		if (thread.getMessageCount() > 1) {
 			long rootMessageId = thread.getRootMessage().getID();
-			JiveIterator<ForumMessage> messages = thread.getMessages();
+			Iterable<ForumMessage> messages = thread.getMessages();
 			sb.append(", ");
 			JSONConverterHelper.appendJsonString(sb, "comments");
 			sb.append(" : [");

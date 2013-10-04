@@ -14,8 +14,6 @@ import org.apache.log4j.Logger;
 import org.jboss.sbs.data.model.JSONConverterHelper;
 
 import com.jivesoftware.community.Community;
-import com.jivesoftware.community.CommunityManager;
-import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.action.util.Decorate;
 
 /**
@@ -28,8 +26,6 @@ public class SpacesAction extends ActionBase {
 
 	private InputStream dataInputStream;
 
-	protected CommunityManager communityManager;
-
 	@Override
 	public String execute() {
 		if (log.isDebugEnabled()) {
@@ -40,7 +36,7 @@ public class SpacesAction extends ActionBase {
 		if (ret != null)
 			return ret;
 
-		JiveIterator<Community> spaces = communityManager.getCommunities(communityManager.getRootCommunity());
+		Iterable<Community> spaces = communityManager.getCommunities(communityManager.getRootCommunity());
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ \"spaces\": [");
@@ -67,9 +63,5 @@ public class SpacesAction extends ActionBase {
 
 	public InputStream getDataInputStream() {
 		return dataInputStream;
-	}
-
-	public void setCommunityManager(CommunityManager communityManager) {
-		this.communityManager = communityManager;
 	}
 }

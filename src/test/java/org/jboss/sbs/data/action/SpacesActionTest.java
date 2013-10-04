@@ -16,8 +16,6 @@ import org.mockito.Mockito;
 
 import com.jivesoftware.community.Community;
 import com.jivesoftware.community.CommunityManager;
-import com.jivesoftware.community.JiveIterator;
-import com.jivesoftware.community.impl.ListJiveIterator;
 
 /**
  * Unit test for {@link SpacesAction}
@@ -65,7 +63,7 @@ public class SpacesActionTest {
 	@Test
 	public void execute() throws IOException {
 		SpacesAction tested = new SpacesAction();
-		ContentActionTest.mockAuthenticationProvider(tested);
+		ContentActionTest.mockAuthenticationProviderAndGlobalResourceResolver(tested);
 
 		Community rootCommunityMock = mockCommunity(10l);
 
@@ -108,13 +106,10 @@ public class SpacesActionTest {
 	}
 
 	private void mockCommunityManager(SpacesAction tested, Community rootCommunityMock, List<Community> communityList) {
-		tested.setCommunityManager(Mockito.mock(CommunityManager.class));
-		Mockito.when(tested.communityManager.getRootCommunity()).thenReturn(rootCommunityMock);
-		JiveIterator<Community> spaces = null;
-		if (communityList != null) {
-			spaces = new ListJiveIterator<Community>(communityList);
-		}
-		Mockito.when(tested.communityManager.getCommunities(rootCommunityMock)).thenReturn(spaces);
+		CommunityManager cm = Mockito.mock(CommunityManager.class);
+		tested.setCommunityManager(cm);
+		Mockito.when(cm.getRootCommunity()).thenReturn(rootCommunityMock);
+		Mockito.when(cm.getCommunities(rootCommunityMock)).thenReturn(communityList);
 	}
 
 	private Community mockCommunity(long id) {

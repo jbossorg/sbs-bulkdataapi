@@ -18,9 +18,7 @@ import com.jivesoftware.base.User;
 import com.jivesoftware.community.ContentTag;
 import com.jivesoftware.community.ForumMessage;
 import com.jivesoftware.community.ForumThread;
-import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.TagDelegator;
-import com.jivesoftware.community.impl.ListJiveIterator;
 
 /**
  * Unit test for {@link ForumThread2JSONConverter}
@@ -36,7 +34,8 @@ public class ForumThread2JSONConverterTest {
 		ForumThread content = mockForumThreadSimple(546586l, "my document title");
 
 		StringBuilder sb = new StringBuilder();
-		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor());
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
@@ -54,19 +53,16 @@ public class ForumThread2JSONConverterTest {
 		List<User> authorsList = new ArrayList<User>();
 		authorsList.add(JSONConverterHelperTest.mockUser("John Doe", "john@doe.org"));
 		authorsList.add(JSONConverterHelperTest.mockUser("Jack Doe", "jack@doe.org"));
-		JiveIterator<User> authors = new ListJiveIterator<User>(authorsList);
-		Mockito.when(content.getAuthors()).thenReturn(authors);
+		Mockito.when(content.getAuthors()).thenReturn(authorsList);
 
 		// only main message returned
 		ForumMessage mainMessage = mockForumMessage(10l, "main one", 6543216546l, false);
 		Mockito.when(content.getRootMessage()).thenReturn(mainMessage);
 		List<ForumMessage> messagesList = new ArrayList<ForumMessage>();
 		messagesList.add(mainMessage);
-		JiveIterator<ForumMessage> messages = new ListJiveIterator<ForumMessage>(messagesList);
 		Mockito.when(content.getMessageCount()).thenReturn(messagesList.size());
-		Mockito.when(content.getMessages()).thenReturn(messages);
+		Mockito.when(content.getMessages()).thenReturn(messagesList);
 
-		JSONConverterHelperTest.mockJiveUrlFactory(content);
 		return content;
 	}
 
@@ -85,14 +81,13 @@ public class ForumThread2JSONConverterTest {
 		tagsList.add(JSONConverterHelperTest.mockTag("tag_1"));
 		tagsList.add(JSONConverterHelperTest.mockTag("tag_2"));
 		tagsList.add(JSONConverterHelperTest.mockTag("tag_3"));
-		TagDelegator tgMock = JSONConverterHelperTest.mockTagDelegator(new ListJiveIterator<ContentTag>(tagsList));
+		TagDelegator tgMock = JSONConverterHelperTest.mockTagDelegator(tagsList);
 		Mockito.when(content.getTagDelegator()).thenReturn(tgMock);
 
 		List<User> authorsList = new ArrayList<User>();
 		authorsList.add(JSONConverterHelperTest.mockUser("John Doe", "john@doe.org"));
 		authorsList.add(JSONConverterHelperTest.mockUser("Jack Doe", "jack@doe.org"));
-		JiveIterator<User> authors = new ListJiveIterator<User>(authorsList);
-		Mockito.when(content.getAuthors()).thenReturn(authors);
+		Mockito.when(content.getAuthors()).thenReturn(authorsList);
 
 		ForumMessage mainMessage = mockForumMessage(10l, "main one", 6543216546l, false);
 		Mockito.when(content.getRootMessage()).thenReturn(mainMessage);
@@ -100,14 +95,12 @@ public class ForumThread2JSONConverterTest {
 		messagesList.add(mainMessage);
 		messagesList.add(mockForumMessage(20, "text 2", 56332132l, true));
 		messagesList.add(mockForumMessage(20, "text 3", 63321351l, false));
-		JiveIterator<ForumMessage> messages = new ListJiveIterator<ForumMessage>(messagesList);
 		Mockito.when(content.getMessageCount()).thenReturn(messagesList.size());
-		Mockito.when(content.getMessages()).thenReturn(messages);
-
-		JSONConverterHelperTest.mockJiveUrlFactory(content);
+		Mockito.when(content.getMessages()).thenReturn(messagesList);
 
 		StringBuilder sb = new StringBuilder();
-		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor());
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\""

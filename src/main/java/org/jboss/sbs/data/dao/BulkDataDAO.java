@@ -27,4 +27,15 @@ public interface BulkDataDAO {
 	 */
 	public List<UpdatedDocumentInfo> listUpdatedDocuments(long spaceId, Long updatedAfterTimestamp);
 
+	/**
+	 * Get list of forum threads matching criteria. Returned threads are ordered by 'date of last update' as required by
+	 * Bulk data API. Returned list may contain threads not available for current user, security check must be done on
+	 * upper level!!!
+	 * 
+	 * @param spaceId identifier of space to get documents for
+	 * @param updatedAfterTimestamp return only threads updated after this date. If null then whole history is used.
+	 * @return last update ordered list with id of forum threads matching criteria
+	 */
+	public List<Long> listForumThreads(long spaceId, Long updatedAfterTimestamp);
+
 }

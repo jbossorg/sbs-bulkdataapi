@@ -15,10 +15,9 @@ import org.jboss.sbs.data.action.IUserAccessor;
 
 import com.jivesoftware.base.User;
 import com.jivesoftware.community.Document;
-import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.comments.Comment;
 import com.jivesoftware.community.comments.CommentDelegator;
-import com.jivesoftware.community.impl.ListJiveIterator;
+import com.jivesoftware.community.web.GlobalResourceResolver;
 
 /**
  * Converter for Document object
@@ -29,10 +28,12 @@ import com.jivesoftware.community.impl.ListJiveIterator;
 public class Document2JSONConverter implements Content2JSONConverter<UpdatedDocumentInfo> {
 
 	@Override
-	public void convert(StringBuilder sb, UpdatedDocumentInfo documentInfo, IUserAccessor userAccessor) throws Exception {
+	public void convert(StringBuilder sb, UpdatedDocumentInfo documentInfo, IUserAccessor userAccessor,
+			GlobalResourceResolver resourceResolver) throws Exception {
 		Document document = documentInfo.getDocument();
 		sb.append("{");
-		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, document, documentInfo.getLastUpdated());
+		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, document, documentInfo.getLastUpdated(),
+				resourceResolver);
 		JSONConverterHelper.appendJSONField(sb, "title", document.getSubject(), false);
 		JSONConverterHelper.appendTags(sb, document.getTagDelegator());
 		if (document.getLatestVersionAuthor() != null || document.getUser() != null) {
@@ -41,8 +42,7 @@ public class Document2JSONConverter implements Content2JSONConverter<UpdatedDocu
 				al.add(document.getUser());
 			if (document.getLatestVersionAuthor() != null)
 				al.add(document.getLatestVersionAuthor());
-			JiveIterator<User> authors = new ListJiveIterator<User>(al);
-			JSONConverterHelper.appendAuthors(sb, authors, userAccessor);
+			JSONConverterHelper.appendAuthors(sb, al, userAccessor);
 		}
 		appendComments(sb, document.getCommentDelegator(), userAccessor);
 		sb.append("}");
@@ -59,8 +59,8 @@ public class Document2JSONConverter implements Content2JSONConverter<UpdatedDocu
 	protected static void appendComments(StringBuilder sb, CommentDelegator commentDelegator, IUserAccessor userAccessor)
 			throws Exception {
 		if (commentDelegator != null) {
-			JiveIterator<Comment> comments = commentDelegator.getComments();
-			if (comments.hasNext()) {
+			Iterable<Comment> comments = commentDelegator.getComments();
+			if (comments.iterator().hasNext()) {
 				sb.append(", ");
 				JSONConverterHelper.appendJsonString(sb, "comments");
 				sb.append(" : [");

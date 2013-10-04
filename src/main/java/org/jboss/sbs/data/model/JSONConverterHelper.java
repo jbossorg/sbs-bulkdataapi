@@ -22,9 +22,8 @@ import com.jivesoftware.base.User;
 import com.jivesoftware.base.UserNotFoundException;
 import com.jivesoftware.community.ContentTag;
 import com.jivesoftware.community.JiveContentObject;
-import com.jivesoftware.community.JiveIterator;
 import com.jivesoftware.community.TagDelegator;
-import com.jivesoftware.community.web.JiveResourceResolver;
+import com.jivesoftware.community.web.GlobalResourceResolver;
 
 /**
  * Helper class with methods for easier implementation of {@link Content2JSONConverter}.
@@ -113,10 +112,10 @@ public class JSONConverterHelper {
 	 * @throws IOException
 	 * @throws TransformerException
 	 */
-	public static void appendCommonJiveContentObjecFields(StringBuilder sb, JiveContentObject data, Long updatedTimespamp)
-			throws IOException, TransformerException {
+	public static void appendCommonJiveContentObjecFields(StringBuilder sb, JiveContentObject data,
+			Long updatedTimespamp, GlobalResourceResolver resourceResolver) throws IOException, TransformerException {
 		appendJSONField(sb, "id", data.getID() + "", true);
-		appendJSONField(sb, "url", JiveResourceResolver.getJiveObjectURL(data, true), false);
+		appendJSONField(sb, "url", resourceResolver.getURL(data, true), false);
 		appendJSONField(sb, "content", bodyToXmlString(data), false);
 		appendJSONField(sb, "published", convertDateValue(data.getCreationDate()), false);
 		appendJSONField(sb, "updated",
@@ -155,8 +154,8 @@ public class JSONConverterHelper {
 	 */
 	public static void appendTags(StringBuilder sb, TagDelegator tagDelegator) {
 		if (tagDelegator != null) {
-			JiveIterator<ContentTag> tags = tagDelegator.getTags();
-			if (tags.hasNext()) {
+			Iterable<ContentTag> tags = tagDelegator.getTags();
+			if (tags.iterator().hasNext()) {
 				sb.append(", ");
 				JSONConverterHelper.appendJsonString(sb, "tags");
 				sb.append(" : [");
@@ -182,9 +181,9 @@ public class JSONConverterHelper {
 	 * @throws Exception
 	 * @throws UserNotFoundException
 	 */
-	public static void appendAuthors(StringBuilder sb, JiveIterator<User> authors, IUserAccessor userAccessor)
+	public static void appendAuthors(StringBuilder sb, Iterable<User> authors, IUserAccessor userAccessor)
 			throws Exception {
-		if (authors != null && authors.hasNext()) {
+		if (authors != null && authors.iterator().hasNext()) {
 			sb.append(", ");
 			JSONConverterHelper.appendJsonString(sb, "authors");
 			sb.append(" : [");

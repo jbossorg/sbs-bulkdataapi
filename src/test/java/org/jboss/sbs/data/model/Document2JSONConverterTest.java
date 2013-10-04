@@ -20,7 +20,6 @@ import com.jivesoftware.community.Document;
 import com.jivesoftware.community.TagDelegator;
 import com.jivesoftware.community.comments.Comment;
 import com.jivesoftware.community.comments.CommentDelegator;
-import com.jivesoftware.community.impl.ListJiveIterator;
 
 /**
  * Unit test for {@link Document2JSONConverter}
@@ -46,11 +45,11 @@ public class Document2JSONConverterTest {
 		Mockito.when(content.getUser()).thenReturn(u1);
 		Mockito.when(content.getLatestVersionAuthor()).thenReturn(u2);
 
-		JSONConverterHelperTest.mockJiveUrlFactory(content);
-
 		StringBuilder sb = new StringBuilder();
 		UpdatedDocumentInfo udi = new UpdatedDocumentInfo(content, 456l);
-		converter.convert(sb, udi, JSONConverterHelperTest.mockIUserAccessor());
+
+		converter.convert(sb, udi, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"456\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
@@ -73,7 +72,7 @@ public class Document2JSONConverterTest {
 		tagsList.add(JSONConverterHelperTest.mockTag("tag_1"));
 		tagsList.add(JSONConverterHelperTest.mockTag("tag_2"));
 		tagsList.add(JSONConverterHelperTest.mockTag("tag_3"));
-		TagDelegator tgMock = JSONConverterHelperTest.mockTagDelegator(new ListJiveIterator<ContentTag>(tagsList));
+		TagDelegator tgMock = JSONConverterHelperTest.mockTagDelegator(tagsList);
 		Mockito.when(content.getTagDelegator()).thenReturn(tgMock);
 
 		User u1 = JSONConverterHelperTest.mockUser("John Doe", "john@doe.org");
@@ -84,14 +83,13 @@ public class Document2JSONConverterTest {
 		comments.add(mockComment("test comment text", 457895462, true));
 		comments.add(mockComment("test comment text 2 ", 557895462, false));
 		CommentDelegator cd = Mockito.mock(CommentDelegator.class);
-		Mockito.when(cd.getComments()).thenReturn(new ListJiveIterator<Comment>(comments));
+		Mockito.when(cd.getComments()).thenReturn(comments);
 		Mockito.when(content.getCommentDelegator()).thenReturn(cd);
-
-		JSONConverterHelperTest.mockJiveUrlFactory(content);
 
 		StringBuilder sb = new StringBuilder();
 		UpdatedDocumentInfo udi = new UpdatedDocumentInfo(content, 4567l);
-		converter.convert(sb, udi, JSONConverterHelperTest.mockIUserAccessor());
+		converter.convert(sb, udi, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"4567\",\"title\":\"my document title\""

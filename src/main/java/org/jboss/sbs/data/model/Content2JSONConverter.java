@@ -7,6 +7,8 @@ package org.jboss.sbs.data.model;
 
 import org.jboss.sbs.data.action.IUserAccessor;
 
+import com.jivesoftware.community.web.GlobalResourceResolver;
+
 /**
  * Interface to convert content to JSON
  * 
@@ -23,8 +25,10 @@ public interface Content2JSONConverter<T> {
 	 * @param sb builder to write object to
 	 * @param t content object to write into JSON
 	 * @param userAccessor service to access user data with necessary informations over security boundaries
+	 * @param resourceResolver to be used to generate links
 	 * @throws exception in case of problems
 	 */
-	public void convert(StringBuilder sb, T t, IUserAccessor userAccessor) throws Exception;
+	public void convert(StringBuilder sb, T t, IUserAccessor userAccessor, GlobalResourceResolver resourceResolver)
+			throws Exception;
 
 }

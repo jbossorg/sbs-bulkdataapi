@@ -79,3 +79,17 @@ HTTP Basic Authentication with standard Jive SBS user credentials.
 If `Bulk Data API Users` group is defined in SBS, then only users present 
 in this group can use this API. If group doesn't exists, then all authenticated
 users can use it.  
+
+Changelog
+---------
+
+2.0.0 - 2013-10-04
+
+* #1 - Jive 6 compatibility
+
+License
+---------
+
+The Apache Software License, Version 2.0
+
+http://www.apache.org/licenses/LICENSE-2.0.txt

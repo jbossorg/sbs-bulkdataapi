@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.jboss.sbs.data.model.UpdatedDocumentInfo;
-import org.springframework.jdbc.core.simple.ParameterizedRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 
 import com.jivesoftware.base.database.dao.JiveJdbcDaoSupport;
 import com.jivesoftware.community.JiveConstants;
@@ -25,9 +25,9 @@ public class DbBulkDataDAOImpl extends JiveJdbcDaoSupport implements BulkDataDAO
 	@Override
 	public List<UpdatedDocumentInfo> listUpdatedDocuments(long spaceId, Long updatedAfterTimestamp) {
 
-		String sql = prepareSql(spaceId, updatedAfterTimestamp);
+		String sql = prepareListUpdatedDocumentsSql(spaceId, updatedAfterTimestamp);
 		logger.debug("SQL called: " + sql);
-		return getSimpleJdbcTemplate().query(sql, new ParameterizedRowMapper<UpdatedDocumentInfo>() {
+		return getSimpleJdbcTemplate().query(sql, new RowMapper<UpdatedDocumentInfo>() {
 
 			@Override
 			public UpdatedDocumentInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -36,7 +36,7 @@ public class DbBulkDataDAOImpl extends JiveJdbcDaoSupport implements BulkDataDAO
 		});
 	}
 
-	protected static String prepareSql(long spaceId, Long updatedAfterTimestamp) {
+	protected static String prepareListUpdatedDocumentsSql(long spaceId, Long updatedAfterTimestamp) {
 		String sqlDoc = "select jdv.internalDocID as id, jdv.modificationDate as d from jiveDocument as jd, jiveDocVersion as jdv where jd.internalDocID = jdv.internalDocID and jdv.state = 'published' and jd.containerID = "
 				+ spaceId;
 		String sqlComment = "select jd.internalDocID as id, comment.modificationDate as d from jiveDocument as jd, jiveComment as comment where jd.internalDocID = comment.objectID and comment.objectType = "
@@ -49,6 +49,29 @@ public class DbBulkDataDAOImpl extends JiveJdbcDaoSupport implements BulkDataDAO
 
 		String sql = "select a.id, max(a.d) from ( " + sqlDoc + " union  " + sqlComment
 				+ " ) as a group by a.id order by a.d";
+		return sql;
+	}
+
+	@Override
+	public List<Long> listForumThreads(long spaceId, Long updatedAfterTimestamp) {
+		String sql = prepareListForumThreadsSql(spaceId, updatedAfterTimestamp);
+		logger.debug("SQL called: " + sql);
+		return getSimpleJdbcTemplate().query(sql, new RowMapper<Long>() {
+
+			@Override
+			public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+				return rs.getLong(1);
+			}
+		});
+	}
+
+	protected static String prepareListForumThreadsSql(long spaceId, Long updatedAfterTimestamp) {
+		String sql = "select jdv.threadID as id from jivethread as jdv where jdv.status = 2 and jdv.containerID = "
+				+ spaceId;
+		if (updatedAfterTimestamp != null) {
+			sql = sql + " and jdv.modificationDate >= " + updatedAfterTimestamp;
+		}
+		sql = sql + " order by jdv.modificationDate asc";
 		return sql;
 	}
 

@@ -11,14 +11,11 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.jboss.sbs.data.dao.BulkDataDAO;
-import org.jboss.sbs.data.model.ForumThread2JSONConverterTest;
 import org.jboss.sbs.data.model.JSONConverterHelperTest;
 import org.jboss.sbs.data.model.UpdatedDocumentInfo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.jivesoftware.base.Group;
 import com.jivesoftware.base.GroupManager;
@@ -35,12 +32,8 @@ import com.jivesoftware.community.DocumentManager;
 import com.jivesoftware.community.DocumentObjectNotFoundException;
 import com.jivesoftware.community.ForumManager;
 import com.jivesoftware.community.ForumThread;
-import com.jivesoftware.community.JiveConstants;
+import com.jivesoftware.community.ForumThreadNotFoundException;
 import com.jivesoftware.community.JiveContentObject.Status;
-import com.jivesoftware.community.JiveIterator;
-import com.jivesoftware.community.ResultFilter;
-import com.jivesoftware.community.ThreadResultFilter;
-import com.jivesoftware.community.impl.ListJiveIterator;
 
 /**
  * Unit test for {@link ContentAction}
@@ -132,7 +125,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_validateError() {
 		ContentAction tested = new ContentAction();
-		mockAuthenticationProvider(tested);
+		mockAuthenticationProviderAndGlobalResourceResolver(tested);
 		Assert.assertEquals("badrequest", tested.execute());
 		Assert.assertEquals("parameter 'type' is required\nparameter 'spaceId' is required", tested.getErrorMessage());
 	}
@@ -140,7 +133,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_unknownCommunity() throws Exception {
 		ContentAction tested = new ContentAction();
-		mockAuthenticationProvider(tested);
+		mockAuthenticationProviderAndGlobalResourceResolver(tested);
 		tested.setType("forum");
 		tested.setSpaceId(123l);
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
@@ -154,62 +147,142 @@ public class ContentActionTest {
 	@Test
 	public void execute_forum_noresult() throws Exception {
 		ContentAction tested = new ContentAction();
-		mockAuthenticationProvider(tested);
-		final List<ForumThread> threadsList = new ArrayList<ForumThread>();
-		performForumTest(tested, threadsList, 100l);
+		mockAuthenticationProviderAndGlobalResourceResolver(tested);
+		tested.setType("forum");
+		tested.setMaxSize(3);
+		tested.setUpdatedAfter(123l);
+		tested.setSpaceId(1l);
+
+		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
+		Community secondSpaceMock = Mockito.mock(Community.class);
+		Mockito.when(secondSpaceMock.getID()).thenReturn(1l);
+		Mockito.when(communityManagerMock.getCommunity(1l)).thenReturn(secondSpaceMock);
+		tested.setCommunityManager(communityManagerMock);
+
+		BulkDataDAO bulkDataDAO = Mockito.mock(BulkDataDAO.class);
+		tested.setBulkDataDAO(bulkDataDAO);
+		List<Long> list = new ArrayList<Long>();
+		Mockito.when(bulkDataDAO.listForumThreads(1l, 123l)).thenReturn(list);
+
+		Assert.assertEquals("success", tested.execute());
+		Assert.assertEquals("", tested.getErrorMessage());
 		assertOutputContent("{ \"items\": []}", tested);
+		Mockito.verify(bulkDataDAO).listForumThreads(1l, 123l);
+		Mockito.verifyNoMoreInteractions(bulkDataDAO);
 	}
 
 	@Test
 	public void execute_forum_withresults() throws Exception {
 		ContentAction tested = new ContentAction();
-		mockAuthenticationProvider(tested);
-		tested.userAccessor = JSONConverterHelperTest.mockIUserAccessor();
-		final List<ForumThread> threadsList = new ArrayList<ForumThread>();
-		threadsList.add(ForumThread2JSONConverterTest.mockForumThreadSimple(10, "thread 1"));
-		threadsList.add(ForumThread2JSONConverterTest.mockForumThreadSimple(20, "thread 2"));
-		performForumTest(tested, threadsList, 100l);
-		assertOutputContent(
-				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"thread 1\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]},{\"id\":\"20\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"thread 2\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}]}",
-				tested);
-	}
+		mockAuthenticationProviderAndGlobalResourceResolver(tested);
+		tested.setType("forum");
+		tested.setMaxSize(3);
+		tested.setSpaceId(1l);
 
-	private void performForumTest(ContentAction tested, final List<ForumThread> threadsList,
-			final Long modificationDateExpected) throws CommunityNotFoundException {
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
 		Community secondSpaceMock = Mockito.mock(Community.class);
-		Mockito.when(communityManagerMock.getCommunity(123l)).thenReturn(secondSpaceMock);
+		Mockito.when(secondSpaceMock.getID()).thenReturn(1l);
+		Mockito.when(communityManagerMock.getCommunity(1l)).thenReturn(secondSpaceMock);
 		tested.setCommunityManager(communityManagerMock);
-		ForumManager forumManagerMock = Mockito.mock(ForumManager.class);
-		tested.setForumManager(forumManagerMock);
-		Mockito.when(forumManagerMock.getThreads(Mockito.eq(secondSpaceMock), Mockito.notNull(ThreadResultFilter.class)))
-				.thenAnswer(new Answer<JiveIterator<ForumThread>>() {
 
-					@Override
-					public JiveIterator<ForumThread> answer(InvocationOnMock invocation) throws Throwable {
-						ThreadResultFilter filter = (ThreadResultFilter) invocation.getArguments()[1];
-						if (modificationDateExpected != null)
-							Assert.assertEquals(modificationDateExpected.longValue(), filter.getModificationDateRangeMin().getTime());
-						else
-							Assert.assertNull(filter.getModificationDateRangeMin());
-						Assert.assertEquals(10, filter.getNumResults());
-						Assert.assertEquals(JiveConstants.MODIFICATION_DATE, filter.getSortField());
-						Assert.assertEquals(ResultFilter.ASCENDING, filter.getSortOrder());
-						return new ListJiveIterator<ForumThread>(threadsList);
-					}
-				});
+		BulkDataDAO bulkDataDAO = Mockito.mock(BulkDataDAO.class);
+		tested.setBulkDataDAO(bulkDataDAO);
+		List<Long> list = new ArrayList<Long>();
+		list.add(10l);
+		list.add(11l);
+		Mockito.when(bulkDataDAO.listForumThreads(1l, null)).thenReturn(list);
 
-		tested.setType("forum");
-		tested.setSpaceId(123l);
-		tested.setUpdatedAfter(100l);
-		tested.setMaxSize(10);
+		ForumManager documentManager = Mockito.mock(ForumManager.class);
+		tested.setForumManager(documentManager);
+		ForumThread doc1 = mockForumThread(10, Status.PUBLISHED);
+		Mockito.when(documentManager.getForumThread(10l)).thenReturn(doc1);
+		ForumThread doc2 = mockForumThread(11, Status.PUBLISHED);
+		Mockito.when(documentManager.getForumThread(11l)).thenReturn(doc2);
+
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
+		assertOutputContent(
+				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\"},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\"}]}",
+				tested);
 	}
 
 	private void assertOutputContent(String expected, ContentAction tested) throws IOException {
 		Assert.assertNotNull(tested.getDataInputStream());
 		Assert.assertEquals(expected, new String(IOUtils.toByteArray(tested.getDataInputStream()), "UTF-8"));
+	}
+
+	@Test
+	public void getThreads() throws Exception {
+		ContentAction tested = new ContentAction();
+		tested.setMaxSize(3);
+		tested.setUpdatedAfter(123l);
+
+		Community space = Mockito.mock(Community.class);
+		Mockito.when(space.getID()).thenReturn(1l);
+
+		BulkDataDAO bulkDataDAO = Mockito.mock(BulkDataDAO.class);
+		tested.setBulkDataDAO(bulkDataDAO);
+
+		ForumManager documentManager = Mockito.mock(ForumManager.class);
+		tested.setForumManager(documentManager);
+
+		// case - emply list from DAO
+		{
+			List<Long> list = new ArrayList<Long>();
+			Mockito.when(bulkDataDAO.listForumThreads(1l, 123l)).thenReturn(list);
+			Assert.assertFalse(tested.getThreads(space).iterator().hasNext());
+			Mockito.verifyZeroInteractions(documentManager);
+		}
+
+		// case - something returned from dao, exception handling from document details reading
+		{
+			Mockito.reset(bulkDataDAO, documentManager);
+			List<Long> list = new ArrayList<Long>();
+			list.add(10l);
+			list.add(11l);
+			list.add(12l);
+			list.add(13l);
+			list.add(14l);
+			list.add(15l);
+			list.add(16l);
+			// next will be skipped because are after maxSize
+			list.add(17l);
+			list.add(18l);
+			Mockito.when(bulkDataDAO.listForumThreads(1l, 123l)).thenReturn(list);
+
+			ForumThread doc1 = mockForumThread(10, Status.PUBLISHED);
+			Mockito.when(documentManager.getForumThread(10)).thenReturn(doc1);
+
+			// this will be skipped
+			ForumThread doc2 = mockForumThread(11, Status.DELETED);
+			Mockito.when(documentManager.getForumThread(11)).thenReturn(doc2);
+
+			ForumThread doc3 = mockForumThread(12, Status.PUBLISHED);
+			Mockito.when(documentManager.getForumThread(12)).thenReturn(doc3);
+
+			// these will be skipped
+			Mockito.when(documentManager.getForumThread(13)).thenThrow(new UnauthorizedException());
+			Mockito.when(documentManager.getForumThread(14)).thenThrow(new ForumThreadNotFoundException());
+			Mockito.when(documentManager.getForumThread(15)).thenReturn(null);
+
+			ForumThread doc4 = mockForumThread(16, Status.PUBLISHED);
+			Mockito.when(documentManager.getForumThread(16)).thenReturn(doc4);
+
+			List<ForumThread> ret = tested.getThreads(space);
+			Assert.assertEquals(3, ret.size());
+			Assert.assertEquals(doc1, ret.get(0));
+			Assert.assertEquals(doc3, ret.get(1));
+			Assert.assertEquals(doc4, ret.get(2));
+			Mockito.verify(documentManager, Mockito.times(7)).getForumThread(Mockito.anyLong());
+			Mockito.verifyNoMoreInteractions(documentManager);
+		}
+	}
+
+	private ForumThread mockForumThread(long id, Status status) {
+		ForumThread doc = Mockito.mock(ForumThread.class);
+		Mockito.when(doc.getID()).thenReturn(id);
+		Mockito.when(doc.getStatus()).thenReturn(status);
+		return doc;
 	}
 
 	@Test
@@ -269,10 +342,11 @@ public class ContentActionTest {
 			Document doc4 = mockDocument(16, Status.PUBLISHED);
 			Mockito.when(documentManager.getDocument(16)).thenReturn(doc4);
 
-			Assert.assertEquals(3, tested.getDocuments(space).size());
-			Assert.assertEquals(doc1, list.get(0).getDocument());
-			Assert.assertEquals(doc3, list.get(2).getDocument());
-			Assert.assertEquals(doc4, list.get(6).getDocument());
+			List<UpdatedDocumentInfo> ret = tested.getDocuments(space);
+			Assert.assertEquals(3, ret.size());
+			Assert.assertEquals(doc1, ret.get(0).getDocument());
+			Assert.assertEquals(doc3, ret.get(1).getDocument());
+			Assert.assertEquals(doc4, ret.get(2).getDocument());
 			Mockito.verify(documentManager, Mockito.times(7)).getDocument(Mockito.anyLong());
 			Mockito.verifyNoMoreInteractions(documentManager);
 		}
@@ -288,7 +362,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_document_noresult() throws Exception {
 		ContentAction tested = new ContentAction();
-		mockAuthenticationProvider(tested);
+		mockAuthenticationProviderAndGlobalResourceResolver(tested);
 		tested.setType("document");
 		tested.setMaxSize(3);
 		tested.setUpdatedAfter(123l);
@@ -313,7 +387,7 @@ public class ContentActionTest {
 	@Test
 	public void execute_document_withresults() throws Exception {
 		ContentAction tested = new ContentAction();
-		mockAuthenticationProvider(tested);
+		mockAuthenticationProviderAndGlobalResourceResolver(tested);
 		tested.setType("document");
 		tested.setMaxSize(3);
 		tested.setSpaceId(1l);
@@ -338,8 +412,6 @@ public class ContentActionTest {
 		Document doc2 = mockDocument(11, Status.PUBLISHED);
 		Mockito.when(documentManager.getDocument(11)).thenReturn(doc2);
 
-		JSONConverterHelperTest.mockJiveUrlFactory(doc1);
-
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
 		assertOutputContent(
@@ -347,8 +419,9 @@ public class ContentActionTest {
 				tested);
 	}
 
-	public static void mockAuthenticationProvider(ActionBase tested) {
+	public static void mockAuthenticationProviderAndGlobalResourceResolver(ActionBase tested) {
 		mockAuthenticationProvider(tested, false, false, false);
+		tested.setGlobalResourceResolver(JSONConverterHelperTest.mockGlobalResourceResolver());
 	}
 
 	public static void mockAuthenticationProvider(ActionBase tested, boolean anonymous, boolean groupExists,

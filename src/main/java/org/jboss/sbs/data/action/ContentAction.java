@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -24,18 +23,14 @@ import com.jivesoftware.base.UnauthorizedException;
 import com.jivesoftware.base.User;
 import com.jivesoftware.base.UserNotFoundException;
 import com.jivesoftware.community.Community;
-import com.jivesoftware.community.CommunityManager;
 import com.jivesoftware.community.CommunityNotFoundException;
 import com.jivesoftware.community.Document;
 import com.jivesoftware.community.DocumentManager;
 import com.jivesoftware.community.DocumentObjectNotFoundException;
 import com.jivesoftware.community.ForumManager;
 import com.jivesoftware.community.ForumThread;
-import com.jivesoftware.community.JiveConstants;
+import com.jivesoftware.community.ForumThreadNotFoundException;
 import com.jivesoftware.community.JiveContentObject.Status;
-import com.jivesoftware.community.JiveIterator;
-import com.jivesoftware.community.ResultFilter;
-import com.jivesoftware.community.ThreadResultFilter;
 import com.jivesoftware.community.aaa.authz.SystemExecutor;
 import com.jivesoftware.community.action.util.Decorate;
 import com.jivesoftware.util.StringUtils;
@@ -85,12 +80,13 @@ public class ContentAction extends ActionBase {
 
 	private String errorMessage = "";
 
-	private CommunityManager communityManager;
-
+	// Injected
 	private DocumentManager documentManager;
 
+	// Injected
 	private ForumManager forumManager;
 
+	// Injected
 	private BulkDataDAO bulkDataDAO;
 
 	public void validateFields() {
@@ -150,13 +146,13 @@ public class ContentAction extends ActionBase {
 						first = false;
 					else
 						sb.append(",");
-					converter.convert(sb, d, userAccessor);
+					converter.convert(sb, d, userAccessor, globalResourceResolver);
 				} catch (Exception e) {
 					throw new RuntimeException("Cannot parse document, id: " + d.getDocumentId() + " due: " + e.getMessage(), e);
 				}
 			}
 		} else if (ContentType.FORUM.equalsIgnoreCase(type)) {
-			JiveIterator<ForumThread> iterator = getThreads(space);
+			Iterable<ForumThread> iterator = getThreads(space);
 			ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
 			boolean first = true;
 			for (ForumThread thread : iterator) {
@@ -165,7 +161,7 @@ public class ContentAction extends ActionBase {
 						first = false;
 					else
 						sb.append(",");
-					converter.convert(sb, thread, userAccessor);
+					converter.convert(sb, thread, userAccessor, globalResourceResolver);
 				} catch (Exception e) {
 					throw new RuntimeException("Cannot parse forum thread, id: " + thread.getID() + " due: " + e.getMessage(), e);
 				}
@@ -206,14 +202,25 @@ public class ContentAction extends ActionBase {
 		return ret;
 	}
 
-	protected JiveIterator<ForumThread> getThreads(Community space) {
-		ThreadResultFilter filter = new ThreadResultFilter();
-		if (updatedAfter != null)
-			filter.setModificationDateRangeMin(new Date(updatedAfter));
-		filter.setNumResults(maxSize);
-		filter.setSortField(JiveConstants.MODIFICATION_DATE);
-		filter.setSortOrder(ResultFilter.ASCENDING);
-		return forumManager.getThreads(space, filter);
+	protected List<ForumThread> getThreads(Community space) {
+		List<Long> rawThreadIds = bulkDataDAO.listForumThreads(space.getID(), updatedAfter);
+		List<ForumThread> ret = new ArrayList<ForumThread>();
+		for (Long threadId : rawThreadIds) {
+			try {
+				ForumThread thread = forumManager.getForumThread(threadId);
+				if (thread != null && Status.PUBLISHED.equals(thread.getStatus())) {
+					ret.add(thread);
+				}
+			} catch (UnauthorizedException e) {
+				// nothing to do, we skip this thread
+			} catch (ForumThreadNotFoundException e) {
+				// nothing to do, ignore it
+			}
+			// check if we have enough documents and break loop if yes
+			if (ret.size() >= maxSize)
+				break;
+		}
+		return ret;
 	}
 
 	@Override
@@ -275,10 +282,6 @@ public class ContentAction extends ActionBase {
 
 	public void setForumManager(ForumManager forumManager) {
 		this.forumManager = forumManager;
-	}
-
-	public void setCommunityManager(CommunityManager communityManager) {
-		this.communityManager = communityManager;
 	}
 
 	public void setBulkDataDAO(BulkDataDAO bulkDataDAO) {
