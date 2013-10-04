@@ -40,6 +40,14 @@
 			<timezone>+1</timezone>
 			<url>http://community.jboss.org/people/lkrzyzanek</url>
 		</developer>
+    <developer>
+      <id>velias</id>
+      <name>Vlastimil Elias</name>
+      <organization>Red Hat</organization>
+      <organizationUrl>http://www.redhat.com</organizationUrl>
+      <timezone>+1</timezone>
+      <url>http://community.jboss.org/people/velias</url>
+    </developer>
 	</developers>
 
 	<properties>
