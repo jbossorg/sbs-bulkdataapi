@@ -22,10 +22,55 @@ import com.jivesoftware.community.TagDelegator;
 
 /**
  * Unit test for {@link ForumThread2JSONConverter}
- * 
+ *
  * @author Vlastimil Elias (velias at redhat dot com)
+ * @author Libor Krzyzanek
  */
 public class ForumThread2JSONConverterTest {
+
+	@Test
+	public void assertInvalidAuthor() throws Exception {
+		ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
+
+		ForumThread content = mockForumThreadSimple(546586l, "my document title");
+
+		List<User> authorsList = new ArrayList<User>();
+		authorsList.add(JSONConverterHelperTest.mockUser("John Doe", null));
+		Mockito.when(content.getAuthors()).thenReturn(authorsList);
+
+		StringBuilder sb = new StringBuilder();
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
+		Assert
+				.assertEquals(
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"full_name\":\"John Doe\"}]}",
+						sb.toString());
+
+
+		authorsList = new ArrayList<User>();
+		authorsList.add(JSONConverterHelperTest.mockUser(null, null));
+		Mockito.when(content.getAuthors()).thenReturn(authorsList);
+
+		sb = new StringBuilder();
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
+		Assert
+				.assertEquals(
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{}]}",
+						sb.toString());
+
+		authorsList = new ArrayList<User>();
+		authorsList.add(JSONConverterHelperTest.mockUser(null, "john@doe.org"));
+		Mockito.when(content.getAuthors()).thenReturn(authorsList);
+
+		sb = new StringBuilder();
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
+		Assert
+				.assertEquals(
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\"}]}",
+						sb.toString());
+	}
 
 	@Test
 	public void convert_noRepliesAndTags() throws Exception {

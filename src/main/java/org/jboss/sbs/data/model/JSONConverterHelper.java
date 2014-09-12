@@ -195,8 +195,8 @@ public class JSONConverterHelper {
 					sb.append(",");
 				sb.append("{");
 				author = userAccessor.getTargetUser(author);
-				appendJSONField(sb, AUTHOR_EMAIL, author.getEmail(), true);
-				appendJSONField(sb, AUTHOR_FULL_NAME, author.getName(), false);
+				boolean emailAppended = appendJSONField(sb, AUTHOR_EMAIL, author.getEmail(), true);
+				appendJSONField(sb, AUTHOR_FULL_NAME, author.getName(), !emailAppended);
 				sb.append("}");
 			}
 			sb.append("]");
@@ -218,8 +218,8 @@ public class JSONConverterHelper {
 			JSONConverterHelper.appendJsonString(sb, "author");
 			sb.append(" : {");
 			author = userAccessor.getTargetUser(author);
-			appendJSONField(sb, AUTHOR_EMAIL, author.getEmail(), true);
-			appendJSONField(sb, AUTHOR_FULL_NAME, author.getName(), false);
+			boolean emailAppended = appendJSONField(sb, AUTHOR_EMAIL, author.getEmail(), true);
+			appendJSONField(sb, AUTHOR_FULL_NAME, author.getName(), !emailAppended);
 			sb.append("}");
 		}
 	}
