@@ -9,7 +9,7 @@
 	<name>Jive SBS plugin: Bulk data API</name>
 	<description>Plugin bulk data API</description>
 	<url>https://github.com/jbossorg/sbs-bulkdataapi</url>
-	<version>1.1.1</version>
+	<version>2.0.0</version>
 
 	<inceptionYear>2013</inceptionYear>
 	<licenses>
