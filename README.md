@@ -86,6 +86,7 @@ Changelog
 2.0.0 - 2013-10-04
 
 * #1 - Jive 6 compatibility
+* #4 - e-mail bugfix
 
 License
 ---------
