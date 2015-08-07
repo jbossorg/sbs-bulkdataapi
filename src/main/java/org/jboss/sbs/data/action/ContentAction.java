@@ -12,13 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.jboss.sbs.data.dao.BulkDataDAO;
-import org.jboss.sbs.data.model.Document2JSONConverter;
-import org.jboss.sbs.data.model.ForumThread2JSONConverter;
-import org.jboss.sbs.data.model.UpdatedDocumentInfo;
-
 import com.jivesoftware.base.UnauthorizedException;
 import com.jivesoftware.base.User;
 import com.jivesoftware.base.UserNotFoundException;
@@ -34,6 +27,13 @@ import com.jivesoftware.community.JiveContentObject.Status;
 import com.jivesoftware.community.aaa.authz.SystemExecutor;
 import com.jivesoftware.community.action.util.Decorate;
 import com.jivesoftware.util.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.jboss.sbs.data.dao.BulkDataDAO;
+import org.jboss.sbs.data.model.Document2JSONConverter;
+import org.jboss.sbs.data.model.ForumThread2JSONConverter;
+import org.jboss.sbs.data.model.JSONConverterHelper;
+import org.jboss.sbs.data.model.UpdatedDocumentInfo;
 
 /**
  * Struts Action with bulk data content access handler implementation.
@@ -134,7 +134,15 @@ public class ContentAction extends ActionBase {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("{ \"items\": [");
+		sb.append("{ ");
+		JSONConverterHelper.appendJsonString(sb, "container_info");
+		sb.append(" : { ");
+		boolean devSpace = space.getDisplayName().equalsIgnoreCase("dev");
+		JSONConverterHelper.appendJSONField(sb, "dev", devSpace, true);
+		sb.append("}, ");
+
+		JSONConverterHelper.appendJsonString(sb, "items");
+		sb.append(": [");
 
 		if (ContentType.DOCUMENT.equalsIgnoreCase(type)) {
 			List<UpdatedDocumentInfo> list = getDocuments(space);

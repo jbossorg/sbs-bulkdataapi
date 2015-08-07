@@ -40,6 +40,9 @@ Notes:
 Returns following JSON:
 
 	{
+		"container_info" : {
+			"dev" : true if is a development user forum
+		},
 		"items" : [
 	 		{
 				"id"        : "SBS unique internal Id",

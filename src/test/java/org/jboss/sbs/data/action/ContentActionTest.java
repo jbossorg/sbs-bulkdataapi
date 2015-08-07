@@ -156,6 +156,7 @@ public class ContentActionTest {
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
 		Community secondSpaceMock = Mockito.mock(Community.class);
 		Mockito.when(secondSpaceMock.getID()).thenReturn(1l);
+		Mockito.when(secondSpaceMock.getDisplayName()).thenReturn("dev");
 		Mockito.when(communityManagerMock.getCommunity(1l)).thenReturn(secondSpaceMock);
 		tested.setCommunityManager(communityManagerMock);
 
@@ -166,7 +167,7 @@ public class ContentActionTest {
 
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
-		assertOutputContent("{ \"items\": []}", tested);
+		assertOutputContent("{ \"container_info\" : { \"dev\":true}, \"items\": []}", tested);
 		Mockito.verify(bulkDataDAO).listForumThreads(1l, 123l);
 		Mockito.verifyNoMoreInteractions(bulkDataDAO);
 	}
@@ -182,6 +183,7 @@ public class ContentActionTest {
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
 		Community secondSpaceMock = Mockito.mock(Community.class);
 		Mockito.when(secondSpaceMock.getID()).thenReturn(1l);
+		Mockito.when(secondSpaceMock.getDisplayName()).thenReturn("dev");
 		Mockito.when(communityManagerMock.getCommunity(1l)).thenReturn(secondSpaceMock);
 		tested.setCommunityManager(communityManagerMock);
 
@@ -202,7 +204,7 @@ public class ContentActionTest {
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
 		assertOutputContent(
-				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}}]}",
+				"{ \"container_info\" : { \"dev\":true}, \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}}]}",
 				tested);
 	}
 
@@ -371,6 +373,7 @@ public class ContentActionTest {
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
 		Community secondSpaceMock = Mockito.mock(Community.class);
 		Mockito.when(secondSpaceMock.getID()).thenReturn(1l);
+		Mockito.when(secondSpaceMock.getDisplayName()).thenReturn("nondev");
 		Mockito.when(communityManagerMock.getCommunity(1l)).thenReturn(secondSpaceMock);
 		tested.setCommunityManager(communityManagerMock);
 
@@ -381,7 +384,7 @@ public class ContentActionTest {
 
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
-		assertOutputContent("{ \"items\": []}", tested);
+		assertOutputContent("{ \"container_info\" : { \"dev\":false}, \"items\": []}", tested);
 	}
 
 	@Test
@@ -395,6 +398,7 @@ public class ContentActionTest {
 		CommunityManager communityManagerMock = Mockito.mock(CommunityManager.class);
 		Community secondSpaceMock = Mockito.mock(Community.class);
 		Mockito.when(secondSpaceMock.getID()).thenReturn(1l);
+		Mockito.when(secondSpaceMock.getDisplayName()).thenReturn("nondev");
 		Mockito.when(communityManagerMock.getCommunity(1l)).thenReturn(secondSpaceMock);
 		tested.setCommunityManager(communityManagerMock);
 
@@ -415,7 +419,7 @@ public class ContentActionTest {
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
 		assertOutputContent(
-				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\",\"updated\":\"100\"},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\",\"updated\":\"110\"}]}",
+				"{ \"container_info\" : { \"dev\":false}, \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\",\"updated\":\"100\"},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\",\"updated\":\"110\"}]}",
 				tested);
 	}
 
