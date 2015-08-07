@@ -49,6 +49,10 @@ Returns following JSON:
 				"published" : "timestamp",
 				"updated"   : "timestamp",
 				"url"       : "URL of original content",
+				"thread_info"    : {
+				    "question"      : true or false,
+				    "answered"      : "timestamp or null"
+				}
 				"authors"   : [ 
 					{
 						"email"     : "author's e-mail",

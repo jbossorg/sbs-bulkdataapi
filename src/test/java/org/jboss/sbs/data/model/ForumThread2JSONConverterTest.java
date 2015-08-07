@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.jivesoftware.community.Question;
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -43,7 +44,7 @@ public class ForumThread2JSONConverterTest {
 				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"full_name\":\"John Doe\"}]}",
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"threadInfo\" : {\"hasQuestion\":false}, \"authors\" : [{\"full_name\":\"John Doe\"}]}",
 						sb.toString());
 
 
@@ -56,7 +57,7 @@ public class ForumThread2JSONConverterTest {
 				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{}]}",
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"threadInfo\" : {\"hasQuestion\":false}, \"authors\" : [{}]}",
 						sb.toString());
 
 		authorsList = new ArrayList<User>();
@@ -68,7 +69,7 @@ public class ForumThread2JSONConverterTest {
 				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\"}]}",
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"threadInfo\" : {\"hasQuestion\":false}, \"authors\" : [{\"email\":\"john@doe.org\"}]}",
 						sb.toString());
 	}
 
@@ -83,7 +84,30 @@ public class ForumThread2JSONConverterTest {
 				JSONConverterHelperTest.mockGlobalResourceResolver());
 		Assert
 				.assertEquals(
-						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"threadInfo\" : {\"hasQuestion\":false}, \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
+						sb.toString());
+	}
+
+	@Test
+	public void convert_withQuestion() throws Exception {
+		ForumThread2JSONConverter converter = new ForumThread2JSONConverter();
+
+		ForumThread content = mockForumThreadSimple(546586l, "my document title");
+
+		Mockito.when(content.hasQuestion()).thenReturn(true);
+		Question question = Mockito.mock(Question.class);
+		Mockito.when(question.isResolved()).thenReturn(true);
+		Mockito.when(question.getResolutionDate()).thenReturn(new Date(12456987));
+		Mockito.when(content.getQuestion()).thenReturn(question);
+
+		StringBuilder sb = new StringBuilder();
+		converter.convert(sb, content, JSONConverterHelperTest.mockIUserAccessor(),
+				JSONConverterHelperTest.mockGlobalResourceResolver());
+
+
+		Assert
+				.assertEquals(
+						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\", \"threadInfo\" : {\"hasQuestion\":true,\"answered\":\"12456987\"}, \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]}",
 						sb.toString());
 	}
 
@@ -150,6 +174,7 @@ public class ForumThread2JSONConverterTest {
 				.assertEquals(
 						"{\"id\":\"546586\",\"url\":\"http://my.test.org/myobject\",\"content\":\"<root>test &gt; text \\\" content</root>\",\"published\":\"12456987\",\"updated\":\"12466987\",\"title\":\"my document title\""
 								+ ", \"tags\" : [\"tag_1\",\"tag_2\",\"tag_3\"]"
+								+ ", \"threadInfo\" : {\"hasQuestion\":false}"
 								+ ", \"authors\" : [{\"email\":\"john@doe.org\",\"full_name\":\"John Doe\"},{\"email\":\"jack@doe.org\",\"full_name\":\"Jack Doe\"}]"
 								+ ", \"comments\" : [{\"content\":\"<root>text 2</root>\", \"author\" : {\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},\"published\":\"56332132\"},{\"content\":\"<root>text 3</root>\", \"author\" : {\"email\":\"john@doe.org\",\"full_name\":\"John Doe comment\"},\"published\":\"63321351\"}]}",
 						sb.toString());

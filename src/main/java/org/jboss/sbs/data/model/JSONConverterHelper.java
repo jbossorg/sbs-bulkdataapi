@@ -16,6 +16,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.jivesoftware.community.ForumThread;
 import org.jboss.sbs.data.action.IUserAccessor;
 
 import com.jivesoftware.base.User;
@@ -55,16 +56,21 @@ public class JSONConverterHelper {
 	 * 
 	 * @param sb to append field into
 	 * @param name of field
-	 * @param value of field
+	 * @param value of field. Can be Boolean, Number or String
 	 * @param first if true then field is treated as first, so no comma before it
 	 * @return true if field was really appended (so value was not null)
 	 */
-	public static boolean appendJSONField(StringBuilder sb, String name, String value, boolean first) {
+	public static boolean appendJSONField(StringBuilder sb, String name, Object value, boolean first) {
 		if (value != null) {
 			if (!first) {
 				sb.append(",");
 			}
-			sb.append("\"").append(name).append("\":\"").append(jsonEscape(value)).append("\"");
+			sb.append("\"").append(name).append("\":");
+			if (value instanceof Boolean || value instanceof Number) {
+				sb.append(value.toString());
+			} else {
+				sb.append("\"").append(jsonEscape(value.toString())).append("\"");
+			}
 			return true;
 		}
 		return false;
@@ -169,6 +175,26 @@ public class JSONConverterHelper {
 				}
 				sb.append("]");
 			}
+		}
+	}
+
+	/**
+	 * Append thread info into JSON content.
+	 *
+	 * @param sb to append tags into
+	 * @param thread thread
+	 */
+	public static void appendThreadInfo(StringBuilder sb, ForumThread thread) {
+		if (thread != null) {
+			sb.append(", ");
+			JSONConverterHelper.appendJsonString(sb, "threadInfo");
+			sb.append(" : {");
+			appendJSONField(sb, "hasQuestion", thread.hasQuestion(), true);
+			if (thread.hasQuestion() && thread.getQuestion().isResolved()) {
+				Date resolutionDate = thread.getQuestion().getResolutionDate();
+				appendJSONField(sb, "answered", convertDateValue(resolutionDate), false);
+			}
+			sb.append("}");
 		}
 	}
 

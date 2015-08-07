@@ -202,7 +202,7 @@ public class ContentActionTest {
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
 		assertOutputContent(
-				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\"},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\"}]}",
+				"{ \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}}]}",
 				tested);
 	}
 

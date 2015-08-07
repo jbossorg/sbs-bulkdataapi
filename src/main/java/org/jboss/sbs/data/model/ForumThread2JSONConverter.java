@@ -30,6 +30,7 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread, null, resourceResolver);
 		JSONConverterHelper.appendJSONField(sb, "title", thread.getName(), false);
 		JSONConverterHelper.appendTags(sb, thread.getTagDelegator());
+		JSONConverterHelper.appendThreadInfo(sb, thread);
 		JSONConverterHelper.appendAuthors(sb, thread.getAuthors(), userAccessor);
 		appendComments(sb, thread, userAccessor);
 		sb.append("}");
@@ -39,7 +40,8 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 	 * Append 'comments' based on thread replies into JSON content.
 	 * 
 	 * @param sb to append comments into
-	 * @param commentDelegator to obtain comments from
+	 * @param thread to obtain comments from
+	 * @param userAccessor user to access
 	 * @throws TransformerException
 	 * @throws IOException
 	 */
@@ -55,10 +57,11 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 			for (ForumMessage message : messages) {
 				if (message.getID() == rootMessageId)
 					continue;
-				if (first)
+				if (first) {
 					first = false;
-				else
+				} else {
 					sb.append(",");
+				}
 				sb.append("{");
 				JSONConverterHelper.appendJSONField(sb, "content", JSONConverterHelper.bodyToXmlString(message), true);
 				JSONConverterHelper.appendAuthor(sb, message.getUser(), userAccessor);

@@ -9,7 +9,7 @@
 	<name>bulkdataapi</name>
 	<description>Plugin bulk data API</description>
 	<url>https://github.com/jbossorg/sbs-bulkdataapi</url>
-	<version>7.0.0</version>
+	<version>7.1.0</version>
 
 	<parent>
 		<groupId>com.jivesoftware.maven</groupId>
