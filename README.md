@@ -70,7 +70,9 @@ Returns following JSON:
 								"full_name" : ""
 							}
 						,
-						"published" : "timestamp"
+						"published" : "timestamp",
+						"helpful_answer" : true or false,
+						"correct_answer" : true or false
 					}
 				]
 			}

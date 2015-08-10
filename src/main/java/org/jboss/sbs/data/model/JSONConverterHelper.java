@@ -187,9 +187,9 @@ public class JSONConverterHelper {
 	public static void appendThreadInfo(StringBuilder sb, ForumThread thread) {
 		if (thread != null) {
 			sb.append(", ");
-			JSONConverterHelper.appendJsonString(sb, "threadInfo");
+			JSONConverterHelper.appendJsonString(sb, "thread_info");
 			sb.append(" : {");
-			appendJSONField(sb, "hasQuestion", thread.hasQuestion(), true);
+			appendJSONField(sb, "question", thread.hasQuestion(), true);
 			if (thread.hasQuestion() && thread.getQuestion().isResolved()) {
 				Date resolutionDate = thread.getQuestion().getResolutionDate();
 				appendJSONField(sb, "answered", convertDateValue(resolutionDate), false);

@@ -9,15 +9,15 @@ import java.io.IOException;
 
 import javax.xml.transform.TransformerException;
 
-import org.jboss.sbs.data.action.IUserAccessor;
-
 import com.jivesoftware.community.ForumMessage;
 import com.jivesoftware.community.ForumThread;
+import com.jivesoftware.community.Question;
 import com.jivesoftware.community.web.GlobalResourceResolver;
+import org.jboss.sbs.data.action.IUserAccessor;
 
 /**
  * ForumThread converter
- * 
+ *
  * @author Libor Krzyzanek
  * @author Vlastimil Elias (velias at redhat dot com)
  */
@@ -25,7 +25,7 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 
 	@Override
 	public void convert(StringBuilder sb, ForumThread thread, IUserAccessor userAccessor,
-			GlobalResourceResolver resourceResolver) throws Exception {
+						GlobalResourceResolver resourceResolver) throws Exception {
 		sb.append("{");
 		JSONConverterHelper.appendCommonJiveContentObjecFields(sb, thread, null, resourceResolver);
 		JSONConverterHelper.appendJSONField(sb, "title", thread.getName(), false);
@@ -38,9 +38,9 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 
 	/**
 	 * Append 'comments' based on thread replies into JSON content.
-	 * 
-	 * @param sb to append comments into
-	 * @param thread to obtain comments from
+	 *
+	 * @param sb           to append comments into
+	 * @param thread       to obtain comments from
 	 * @param userAccessor user to access
 	 * @throws TransformerException
 	 * @throws IOException
@@ -50,6 +50,7 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 		if (thread.getMessageCount() > 1) {
 			long rootMessageId = thread.getRootMessage().getID();
 			Iterable<ForumMessage> messages = thread.getMessages();
+			Question question = thread.getQuestion();
 			sb.append(", ");
 			JSONConverterHelper.appendJsonString(sb, "comments");
 			sb.append(" : [");
@@ -67,6 +68,10 @@ public class ForumThread2JSONConverter implements Content2JSONConverter<ForumThr
 				JSONConverterHelper.appendAuthor(sb, message.getUser(), userAccessor);
 				JSONConverterHelper.appendJSONField(sb, "published",
 						JSONConverterHelper.convertDateValue(message.getCreationDate()), false);
+				if (question != null) {
+					JSONConverterHelper.appendJSONField(sb, "correct_answer", question.isCorrectAnswer(message), false);
+					JSONConverterHelper.appendJSONField(sb, "helpful_answer", question.isHelpfulAnswer(message), false);
+				}
 				sb.append("}");
 			}
 			sb.append("]");

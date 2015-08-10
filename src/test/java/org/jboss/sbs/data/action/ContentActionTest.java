@@ -204,7 +204,7 @@ public class ContentActionTest {
 		Assert.assertEquals("success", tested.execute());
 		Assert.assertEquals("", tested.getErrorMessage());
 		assertOutputContent(
-				"{ \"container_info\" : { \"dev\":true}, \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"threadInfo\" : {\"hasQuestion\":false}}]}",
+				"{ \"container_info\" : { \"dev\":true}, \"items\": [{\"id\":\"10\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"thread_info\" : {\"question\":false}},{\"id\":\"11\",\"url\":\"http://my.test.org/myobject\",\"content\":\"\", \"thread_info\" : {\"question\":false}}]}",
 				tested);
 	}
 
