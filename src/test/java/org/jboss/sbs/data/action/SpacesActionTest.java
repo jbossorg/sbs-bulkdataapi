@@ -109,7 +109,7 @@ public class SpacesActionTest {
 		CommunityManager cm = Mockito.mock(CommunityManager.class);
 		tested.setCommunityManager(cm);
 		Mockito.when(cm.getRootCommunity()).thenReturn(rootCommunityMock);
-		Mockito.when(cm.getCommunities(rootCommunityMock)).thenReturn(communityList);
+		Mockito.when(cm.getRecursiveCommunities(rootCommunityMock)).thenReturn(communityList);
 	}
 
 	private Community mockCommunity(long id) {

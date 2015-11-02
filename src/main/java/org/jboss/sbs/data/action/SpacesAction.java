@@ -36,7 +36,7 @@ public class SpacesAction extends ActionBase {
 		if (ret != null)
 			return ret;
 
-		Iterable<Community> spaces = communityManager.getCommunities(communityManager.getRootCommunity());
+		Iterable<Community> spaces = communityManager.getRecursiveCommunities(communityManager.getRootCommunity());
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("{ \"spaces\": [");
