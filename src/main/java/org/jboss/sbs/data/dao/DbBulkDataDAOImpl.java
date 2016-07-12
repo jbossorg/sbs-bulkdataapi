@@ -66,7 +66,7 @@ public class DbBulkDataDAOImpl extends JiveJdbcDaoSupport implements BulkDataDAO
 	}
 
 	protected static String prepareListForumThreadsSql(long spaceId, Long updatedAfterTimestamp) {
-		String sql = "select jdv.threadID as id from jivethread as jdv where jdv.status = 2 and jdv.containerID = "
+		String sql = "select jdv.threadID as id from jiveThread as jdv where jdv.status = 2 and jdv.containerID = "
 				+ spaceId;
 		if (updatedAfterTimestamp != null) {
 			sql = sql + " and jdv.modificationDate >= " + updatedAfterTimestamp;

@@ -5,9 +5,9 @@
  */
 package org.jboss.sbs.data.dao;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * Unit test for {@link DbBulkDataDAOImpl}
@@ -36,12 +36,12 @@ public class DbBulkDataDAOImplTest {
 
 		Assert
 				.assertEquals(
-						"select jdv.threadID as id from jivethread as jdv where jdv.status = 2 and jdv.containerID = 10 order by jdv.modificationDate asc",
+						"select jdv.threadID as id from jiveThread as jdv where jdv.status = 2 and jdv.containerID = 10 order by jdv.modificationDate asc",
 						DbBulkDataDAOImpl.prepareListForumThreadsSql(10, null));
 
 		Assert
 				.assertEquals(
-						"select jdv.threadID as id from jivethread as jdv where jdv.status = 2 and jdv.containerID = 10 and jdv.modificationDate >= 2365 order by jdv.modificationDate asc",
+						"select jdv.threadID as id from jiveThread as jdv where jdv.status = 2 and jdv.containerID = 10 and jdv.modificationDate >= 2365 order by jdv.modificationDate asc",
 						DbBulkDataDAOImpl.prepareListForumThreadsSql(10, 2365l));
 
 	}
